@@ -21,9 +21,6 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     
-    <!-- QRCode.js for Authenticator QR -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+Sinhala:wght@400;500;600;700&display=swap" rel="stylesheet">
     
@@ -153,23 +150,93 @@
         // Auth Context
         const AuthContext = createContext(null);
         
-        // OTP Generation (Simulating Google Authenticator)
-        const generateSecret = () => {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-            let secret = '';
-            for (let i = 0; i < 16; i++) {
-                secret += chars.charAt(Math.floor(Math.random() * chars.length));
+        // Fixed Secret Key for Aura AI
+        const FIXED_SECRET_KEY = 'AURAAICREION4VIP';
+        
+        // Base32 decoding for TOTP
+        const base32Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+        
+        const base32Decode = (input) => {
+            const cleaned = input.toUpperCase().replace(/[^A-Z2-7]/g, '');
+            const result = [];
+            let bits = 0;
+            let value = 0;
+            
+            for (let i = 0; i < cleaned.length; i++) {
+                const char = cleaned.charAt(i);
+                const val = base32Chars.indexOf(char);
+                if (val === -1) continue;
+                
+                value = (value << 5) | val;
+                bits += 5;
+                
+                if (bits >= 8) {
+                    result.push((value >>> (bits - 8)) & 0xFF);
+                    bits -= 8;
+                }
             }
-            return secret;
+            return new Uint8Array(result);
         };
         
-        const generateTOTP = (secret) => {
-            // Simplified TOTP simulation - in production use proper crypto library
-            let code = '';
-            for (let i = 0; i < 6; i++) {
-                code += Math.floor(Math.random() * 10);
+        // HMAC-SHA1 implementation
+        const hmacSha1 = async (key, message) => {
+            const cryptoKey = await crypto.subtle.importKey(
+                'raw',
+                key,
+                { name: 'HMAC', hash: 'SHA-1' },
+                false,
+                ['sign']
+            );
+            const signature = await crypto.subtle.sign('HMAC', cryptoKey, message);
+            return new Uint8Array(signature);
+        };
+        
+        // Generate TOTP using proper RFC 6238 algorithm
+        const generateTOTP = async (secret, timeStep = null) => {
+            try {
+                const step = timeStep || Math.floor(Date.now() / 30000);
+                
+                // Convert time step to 8-byte array (big-endian)
+                const timeBuffer = new ArrayBuffer(8);
+                const timeView = new DataView(timeBuffer);
+                timeView.setUint32(4, step, false);
+                
+                // Decode base32 secret
+                const keyBytes = base32Decode(secret);
+                
+                // Calculate HMAC-SHA1
+                const hmac = await hmacSha1(keyBytes, timeBuffer);
+                
+                // Dynamic truncation
+                const offset = hmac[hmac.length - 1] & 0x0F;
+                const binary = ((hmac[offset] & 0x7F) << 24) |
+                               ((hmac[offset + 1] & 0xFF) << 16) |
+                               ((hmac[offset + 2] & 0xFF) << 8) |
+                               (hmac[offset + 3] & 0xFF);
+                
+                // Generate 6-digit code
+                const otp = binary % 1000000;
+                return otp.toString().padStart(6, '0');
+            } catch (error) {
+                console.error('TOTP generation error:', error);
+                return generateFallbackTOTP(secret, timeStep);
             }
-            return code;
+        };
+        
+        // Fallback TOTP generation
+        const generateFallbackTOTP = (secret, timeStep = null) => {
+            const step = timeStep || Math.floor(Date.now() / 30000);
+            let hash = 0;
+            const combined = secret + step;
+            
+            for (let i = 0; i < combined.length; i++) {
+                const char = combined.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            
+            const code = Math.abs(hash % 1000000);
+            return code.toString().padStart(6, '0');
         };
         
         // Particle Background
@@ -251,7 +318,7 @@
         
         // WhatsApp Notification Function
         const sendWhatsAppNotification = (studentData) => {
-            const phone = '94762196055'; // Admin WhatsApp number
+            const phone = '94762196055';
             const message = `🔔 *New Registration - Aura AI*%0A%0A` +
                           `*Name:* ${studentData.name}%0A` +
                           `*Email:* ${studentData.email}%0A` +
@@ -459,54 +526,12 @@
                 email: '',
                 phone: '',
                 password: '',
-                secret: '',
                 otp: ''
             });
-            const [generatedOTP, setGeneratedOTP] = useState('');
             const [error, setError] = useState('');
-            const [timeLeft, setTimeLeft] = useState(30);
+            const [isVerifying, setIsVerifying] = useState(false);
             
-            useEffect(() => {
-                if (step === 2) {
-                    // Generate secret and OTP
-                    const secret = generateSecret();
-                    const otp = generateTOTP(secret);
-                    setGeneratedOTP(otp);
-                    setFormData(prev => ({ ...prev, secret }));
-                    
-                    // Generate QR Code
-                    setTimeout(() => {
-                        const qrContainer = document.getElementById('qrcode');
-                        if (qrContainer) {
-                            qrContainer.innerHTML = '';
-                            new QRCode(qrContainer, {
-                                text: `otpauth://totp/AuraAI:${formData.email}?secret=${secret}&issuer=AuraAI`,
-                                width: 128,
-                                height: 128,
-                                colorDark: "#000000",
-                                colorLight: "#ffffff",
-                                correctLevel: QRCode.CorrectLevel.H
-                            });
-                        }
-                    }, 100);
-                    
-                    // Timer
-                    const timer = setInterval(() => {
-                        setTimeLeft(prev => {
-                            if (prev <= 1) {
-                                const newOtp = generateTOTP(secret);
-                                setGeneratedOTP(newOtp);
-                                return 30;
-                            }
-                            return prev - 1;
-                        });
-                    }, 1000);
-                    
-                    return () => clearInterval(timer);
-                }
-            }, [step]);
-            
-            const validateStep = () => {
+            const validateStep = async () => {
                 setError('');
                 if (step === 1) {
                     if (!formData.name || !formData.email || !formData.phone || !formData.password) {
@@ -518,30 +543,37 @@
                         return false;
                     }
                 } else if (step === 2) {
-                    if (formData.otp !== generatedOTP) {
-                        setError('Invalid authentication code. Please check Google Authenticator app.');
+                    if (!formData.otp || formData.otp.length !== 6) {
+                        setError('Please enter 6-digit authentication code');
+                        return false;
+                    }
+                    
+                    setIsVerifying(true);
+                    const expectedOTP = await generateTOTP(FIXED_SECRET_KEY);
+                    setIsVerifying(false);
+                    
+                    if (formData.otp !== expectedOTP) {
+                        setError('Invalid authentication code. Please check Google Authenticator app and try again.');
                         return false;
                     }
                 }
                 return true;
             };
             
-            const handleNext = () => {
-                if (validateStep()) {
+            const handleNext = async () => {
+                const isValid = await validateStep();
+                if (isValid) {
                     if (step < 2) {
                         setStep(step + 1);
                     } else {
-                        // Complete registration
                         const userData = {
                             name: formData.name,
                             email: formData.email,
                             phone: formData.phone,
-                            secret: formData.secret,
                             password: formData.password,
                             registeredAt: new Date().toISOString()
                         };
                         
-                        // Store in localStorage (simulating database)
                         const users = JSON.parse(localStorage.getItem('aura_users') || '[]');
                         if (users.find(u => u.email === formData.email)) {
                             setError('Email already registered');
@@ -550,7 +582,6 @@
                         users.push(userData);
                         localStorage.setItem('aura_users', JSON.stringify(users));
                         
-                        // Send WhatsApp notification
                         sendWhatsAppNotification(userData);
                         
                         onSuccess(userData);
@@ -660,28 +691,18 @@
                                         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-500/20 mb-4">
                                             <Icon name="shield" size={32} className="text-indigo-400" />
                                         </div>
-                                        <h3 className="text-white font-semibold mb-2">Two-Factor Authentication</h3>
-                                        <p className="text-gray-400 text-sm">Scan QR code with Google Authenticator</p>
+                                        <h3 className="text-white font-semibold mb-2">Verification Required</h3>
+                                        <p className="text-gray-400 text-sm">Enter code from Google Authenticator</p>
                                     </div>
                                     
-                                    <div className="flex justify-center mb-6">
-                                        <div className="p-4 bg-white rounded-2xl">
-                                            <div id="qrcode"></div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="text-center mb-4">
-                                        <p className="text-gray-400 text-xs mb-2">Secret Key (manual entry):</p>
-                                        <code className="text-indigo-400 text-sm font-mono bg-gray-800 px-3 py-1 rounded-lg">
-                                            {formData.secret}
-                                        </code>
+                                    <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 mb-4">
+                                        <p className="text-blue-400 text-sm text-center">
+                                            Open Google Authenticator app and enter the current 6-digit code for <strong>Aura AI</strong>
+                                        </p>
                                     </div>
                                     
                                     <div className="mb-4">
-                                        <div className="flex justify-between text-sm mb-2">
-                                            <span className="text-gray-400">Enter 6-digit code</span>
-                                            <span className="text-indigo-400">Expires in {timeLeft}s</span>
-                                        </div>
+                                        <label className="block text-gray-400 text-sm mb-2">Authentication Code</label>
                                         <input 
                                             type="text" 
                                             className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:border-indigo-500 focus:outline-none transition-colors text-center text-2xl tracking-[0.5em] font-mono"
@@ -689,13 +710,13 @@
                                             maxLength="6"
                                             value={formData.otp}
                                             onChange={(e) => setFormData({...formData, otp: e.target.value.replace(/\D/g, '')})}
+                                            autoFocus
                                         />
                                     </div>
                                     
-                                    <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
-                                        <p className="text-blue-400 text-xs flex items-start gap-2">
-                                            <Icon name="info" size={14} />
-                                            Open Google Authenticator app, scan the QR code, and enter the 6-digit code shown.
+                                    <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                                        <p className="text-yellow-400 text-xs text-center">
+                                            Don't have the code? Add <strong>Aura AI</strong> to Google Authenticator using the setup key provided by admin.
                                         </p>
                                     </div>
                                 </>
@@ -714,9 +735,10 @@
                                 <button 
                                     type="button"
                                     onClick={handleNext}
-                                    className="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-indigo-500/25 transition-all"
+                                    disabled={isVerifying}
+                                    className="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-indigo-500/25 transition-all disabled:opacity-50"
                                 >
-                                    {step === 2 ? 'Complete Registration' : 'Continue'}
+                                    {isVerifying ? 'Verifying...' : (step === 2 ? 'Complete Registration' : 'Continue')}
                                 </button>
                             </div>
                         </div>
@@ -730,36 +752,13 @@
             const [formData, setFormData] = useState({ email: '', password: '', otp: '' });
             const [error, setError] = useState('');
             const [showOTP, setShowOTP] = useState(false);
-            const [userSecret, setUserSecret] = useState('');
-            const [timeLeft, setTimeLeft] = useState(30);
-            const [generatedOTP, setGeneratedOTP] = useState('');
+            const [isVerifying, setIsVerifying] = useState(false);
             
-            useEffect(() => {
-                if (showOTP) {
-                    const otp = generateTOTP(userSecret);
-                    setGeneratedOTP(otp);
-                    
-                    const timer = setInterval(() => {
-                        setTimeLeft(prev => {
-                            if (prev <= 1) {
-                                const newOtp = generateTOTP(userSecret);
-                                setGeneratedOTP(newOtp);
-                                return 30;
-                            }
-                            return prev - 1;
-                        });
-                    }, 1000);
-                    
-                    return () => clearInterval(timer);
-                }
-            }, [showOTP, userSecret]);
-            
-            const handleLogin = (e) => {
+            const handleLogin = async (e) => {
                 e.preventDefault();
                 setError('');
                 
                 if (!showOTP) {
-                    // Verify email/password
                     const users = JSON.parse(localStorage.getItem('aura_users') || '[]');
                     const user = users.find(u => u.email === formData.email);
                     
@@ -773,12 +772,19 @@
                         return;
                     }
                     
-                    setUserSecret(user.secret);
                     setShowOTP(true);
                 } else {
-                    // Verify OTP
-                    if (formData.otp !== generatedOTP) {
-                        setError('Invalid authentication code');
+                    if (!formData.otp || formData.otp.length !== 6) {
+                        setError('Please enter 6-digit authentication code');
+                        return;
+                    }
+                    
+                    setIsVerifying(true);
+                    const expectedOTP = await generateTOTP(FIXED_SECRET_KEY);
+                    setIsVerifying(false);
+                    
+                    if (formData.otp !== expectedOTP) {
+                        setError('Invalid authentication code. Please try again.');
                         return;
                     }
                     
@@ -844,11 +850,14 @@
                                         <p className="text-gray-400 text-sm">Open Google Authenticator and enter code</p>
                                     </div>
                                     
+                                    <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 mb-4">
+                                        <p className="text-blue-400 text-xs text-center">
+                                            Enter the 6-digit code from Google Authenticator for <strong>Aura AI</strong>
+                                        </p>
+                                    </div>
+                                    
                                     <div>
-                                        <div className="flex justify-between text-sm mb-2">
-                                            <span className="text-gray-400">Authentication Code</span>
-                                            <span className="text-indigo-400 text-xs">Expires in {timeLeft}s</span>
-                                        </div>
+                                        <label className="block text-gray-400 text-sm mb-2">Authentication Code</label>
                                         <input 
                                             type="text" 
                                             className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:border-indigo-500 focus:outline-none transition-colors text-center text-2xl tracking-[0.5em] font-mono"
@@ -872,9 +881,10 @@
                             
                             <button 
                                 type="submit"
-                                className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-indigo-500/25 transition-all mt-6"
+                                disabled={isVerifying}
+                                className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-indigo-500/25 transition-all mt-6 disabled:opacity-50"
                             >
-                                {showOTP ? 'Verify & Login' : 'Continue'}
+                                {isVerifying ? 'Verifying...' : (showOTP ? 'Verify & Login' : 'Continue')}
                             </button>
                         </form>
                     </div>
@@ -996,7 +1006,6 @@
             ];
             
             const handleLessonClick = (lesson, index) => {
-                // Check if previous lesson is completed or this is first lesson
                 const prevLesson = modules[activeModule].lessons[index - 1];
                 const isLocked = index > 0 && !completedLessons.includes(prevLesson?.id);
                 
@@ -1044,7 +1053,6 @@
                 <div className="min-h-screen pt-24 pb-12 px-4">
                     <div className="max-w-7xl mx-auto">
                         <div className="grid lg:grid-cols-3 gap-8">
-                            {/* Sidebar */}
                             <div className="lg:col-span-1 space-y-6">
                                 <motion.div 
                                     initial={{ opacity: 0, x: -20 }}
@@ -1151,7 +1159,6 @@
                                 </motion.div>
                             </div>
                             
-                            {/* Main Content */}
                             <div className="lg:col-span-2">
                                 <motion.div
                                     initial={{ opacity: 0, y: 20 }}
@@ -1275,14 +1282,12 @@
             useEffect(() => {
                 initParticles();
                 
-                // Check for saved session
                 const savedUser = localStorage.getItem('aura_current_user');
                 if (savedUser) {
                     setUser(JSON.parse(savedUser));
                     setIsLoggedIn(true);
                 }
                 
-                // Listen for navigation events
                 const handleNav = (e) => {
                     const page = e.detail;
                     if (page === 'courses' && !isLoggedIn && !savedUser) {
