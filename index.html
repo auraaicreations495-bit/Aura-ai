@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura AI Creations - AI Video Course Platform</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Framer Motion -->
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+Sinhala:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'Noto Sans Sinhala', 'sans-serif'],
+                    },
+                    colors: {
+                        aura: {
+                            primary: '#6366f1',
+                            secondary: '#8b5cf6',
+                            accent: '#ec4899',
+                            dark: '#0f172a',
+                            darker: '#020617',
+                        }
+                    },
+                    animation: {
+                        'gradient': 'gradient 8s linear infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        gradient: {
+                            '0%, 100%': { backgroundPosition: '0% 50%' },
+                            '50%': { backgroundPosition: '100% 50%' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            background: #020617;
+            overflow-x: hidden;
+        }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .glass-strong {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #6366f1 0%, #ec4899 50%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .gradient-border {
+            position: relative;
+            background: linear-gradient(135deg, #6366f1, #ec4899, #8b5cf6);
+            padding: 2px;
+            border-radius: 16px;
+        }
+        
+        .gradient-border-inner {
+            background: #0f172a;
+            border-radius: 14px;
+            height: 100%;
+            width: 100%;
+        }
+        
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        .video-progress {
+            background: linear-gradient(90deg, #6366f1 0%, #ec4899 100%);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <!-- Particle Background Canvas -->
+    <canvas id="canvas-container"></canvas>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo } = React;
+        const { motion, AnimatePresence } = window.Motion;
+        
+        // Particle Background System
+        const initParticles = () => {
+            const canvas = document.getElementById('canvas-container');
+            const ctx = canvas.getContext('2d');
+            
+            const resize = () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            };
+            resize();
+            window.addEventListener('resize', resize);
+            
+            const particles = [];
+            const particleCount = 100;
+            
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 2 + 0.5;
+                    this.speedX = Math.random() * 0.5 - 0.25;
+                    this.speedY = Math.random() * 0.5 - 0.25;
+                    this.opacity = Math.random() * 0.5 + 0.2;
+                }
+                
+                update() {
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                    
+                    if (this.x > canvas.width) this.x = 0;
+                    if (this.x < 0) this.x = canvas.width;
+                    if (this.y > canvas.height) this.y = 0;
+                    if (this.y < 0) this.y = canvas.height;
+                }
+                
+                draw() {
+                    ctx.fillStyle = `rgba(99, 102, 241, ${this.opacity})`;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+            
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+            
+            const animate = () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw connections
+                particles.forEach((p1, i) => {
+                    particles.slice(i + 1).forEach(p2 => {
+                        const dx = p1.x - p2.x;
+                        const dy = p1.y - p2.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < 150) {
+                            ctx.strokeStyle = `rgba(99, 102, 241, ${0.1 * (1 - distance / 150)})`;
+                            ctx.lineWidth = 1;
+                            ctx.beginPath();
+                            ctx.moveTo(p1.x, p1.y);
+                            ctx.lineTo(p2.x, p2.y);
+                            ctx.stroke();
+                        }
+                    });
+                });
+                
+                particles.forEach(p => {
+                    p.update();
+                    p.draw();
+                });
+                
+                requestAnimationFrame(animate);
+            };
+            animate();
+        };
+        
+        // Icons Component
+        const Icon = ({ name, size = 24, className = "" }) => {
+            useEffect(() => {
+                lucide.createIcons();
+            }, [name]);
+            
+            return <i data-lucide={name} width={size} height={size} className={className}></i>;
+        };
+        
+        // Navigation Component
+        const Navigation = ({ currentPage, setPage, isLoggedIn, user }) => {
+            const [scrolled, setScrolled] = useState(false);
+            
+            useEffect(() => {
+                const handleScroll = () => setScrolled(window.scrollY > 50);
+                window.addEventListener('scroll', handleScroll);
+                return () => window.removeEventListener('scroll', handleScroll);
+            }, []);
+            
+            const navItems = [
+                { id: 'home', label: 'මුල් පිටුව', icon: 'home' },
+                { id: 'courses', label: 'පාඨමාලා', icon: 'book-open' },
+                { id: 'about', label: 'අපි ගැන', icon: 'info' },
+            ];
+            
+            return (
+                <motion.nav 
+                    initial={{ y: -100 }}
+                    animate={{ y: 0 }}
+                    className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'glass-strong py-3' : 'py-6 bg-transparent'}`}
+                >
+                    <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+                        <motion.div 
+                            className="flex items-center gap-3 cursor-pointer"
+                            onClick={() => setPage('home')}
+                            whileHover={{ scale: 1.05 }}
+                        >
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center">
+                                <span className="text-white font-bold text-xl">A</span>
+                            </div>
+                            <span className="text-xl font-bold text-white">
+                                Aura <span className="gradient-text">AI</span>
+                            </span>
+                        </motion.div>
+                        
+                        <div className="hidden md:flex items-center gap-8">
+                            {navItems.map((item) => (
+                                <motion.button
+                                    key={item.id}
+                                    onClick={() => setPage(item.id)}
+                                    className={`flex items-center gap-2 text-sm font-medium transition-colors ${currentPage === item.id ? 'text-indigo-400' : 'text-gray-400 hover:text-white'}`}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    <Icon name={item.icon} size={18} />
+                                    {item.label}
+                                </motion.button>
+                            ))}
+                        </div>
+                        
+                        <div className="flex items-center gap-4">
+                            {isLoggedIn ? (
+                                <motion.div 
+                                    className="flex items-center gap-3 glass px-4 py-2 rounded-full cursor-pointer"
+                                    onClick={() => setPage('dashboard')}
+                                    whileHover={{ scale: 1.05 }}
+                                >
+                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-sm font-bold">
+                                        {user?.name?.[0] || 'U'}
+                                    </div>
+                                    <span className="text-white text-sm hidden sm:block">{user?.name || 'Student'}</span>
+                                </motion.div>
+                            ) : (
+                                <motion.button
+                                    onClick={() => setPage('auth')}
+                                    className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full font-medium text-sm hover:shadow-lg hover:shadow-indigo-500/25 transition-all"
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    Login / Register
+                                </motion.button>
+                            )}
+                        </div>
+                    </div>
+                </motion.nav>
+            );
+        };
+        
+        // Hero Section
+        const Hero = ({ setPage }) => {
+            return (
+                <section className="min-h-screen flex items-center justify-center relative overflow-hidden pt-20">
+                    <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
+                        <motion.div
+                            initial={{ opacity: 0, x: -50 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.8 }}
+                        >
+                            <motion.div 
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-6"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.2 }}
+                            >
+                                <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                                <span className="text-gray-300 text-sm">New AI Course 2024 Available</span>
+                            </motion.div>
+                            
+                            <h1 className="text-5xl lg:text-7xl font-bold text-white leading-tight mb-6">
+                                Master AI with <br />
+                                <span className="gradient-text">Aura Creations</span>
+                            </h1>
+                            
+                            <p className="text-gray-400 text-lg mb-8 max-w-lg leading-relaxed">
+                                50+ Professional Video Lessons • Sinhala Medium • Lifetime Access • 
+                                Certificate Included • Rs. 9,500 Only
+                            </p>
+                            
+                            <div className="flex flex-wrap gap-4">
+                                <motion.button
+                                    onClick={() => setPage('auth')}
+                                    className="px-8 py-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white rounded-full font-semibold text-lg hover:shadow-2xl hover:shadow-purple-500/25 transition-all flex items-center gap-2"
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    <Icon name="play-circle" size={20} />
+                                    Start Learning Now
+                                </motion.button>
+                                
+                                <motion.button
+                                    onClick={() => setPage('courses')}
+                                    className="px-8 py-4 glass text-white rounded-full font-semibold text-lg hover:bg-white/10 transition-all flex items-center gap-2"
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    <Icon name="book-open" size={20} />
+                                    View Curriculum
+                                </motion.button>
+                            </div>
+                            
+                            <div className="mt-12 flex items-center gap-8">
+                                <div>
+                                    <div className="text-3xl font-bold text-white">500+</div>
+                                    <div className="text-gray-500 text-sm">Students Enrolled</div>
+                                </div>
+                                <div className="w-px h-12 bg-gray-700"></div>
+                                <div>
+                                    <div className="text-3xl font-bold text-white">50+</div>
+                                    <div className="text-gray-500 text-sm">Video Lessons</div>
+                                </div>
+                                <div className="w-px h-12 bg-gray-700"></div>
+                                <div>
+                                    <div className="text-3xl font-bold text-white">4.9</div>
+                                    <div className="text-gray-500 text-sm">Rating</div>
+                                </div>
+                            </div>
+                        </motion.div>
+                        
+                        <motion.div
+                            initial={{ opacity: 0, x: 50 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.8 }}
+                            className="relative"
+                        >
+                            <div className="relative z-10">
+                                <div className="gradient-border p-1 rounded-3xl">
+                                    <div className="gradient-border-inner p-8 rounded-3xl bg-aura-dark">
+                                        <div className="aspect-video rounded-2xl bg-gradient-to-br from-indigo-900/50 to-purple-900/50 flex items-center justify-center relative overflow-hidden group cursor-pointer">
+                                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/20 to-purple-600/20 animate-pulse"></div>
+                                            <motion.div 
+                                                className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20"
+                                                whileHover={{ scale: 1.1 }}
+                                            >
+                                                <Icon name="play" size={32} className="text-white ml-1" />
+                                            </motion.div>
+                                            
+                                            {/* Floating Elements */}
+                                            <motion.div 
+                                                className="absolute top-4 left-4 glass px-4 py-2 rounded-lg"
+                                                animate={{ y: [0, -10, 0] }}
+                                                transition={{ duration: 3, repeat: Infinity }}
+                                            >
+                                                <span className="text-white text-sm font-medium">🔥 Trending</span>
+                                            </motion.div>
+                                            
+                                            <motion.div 
+                                                className="absolute bottom-4 right-4 glass px-4 py-2 rounded-lg"
+                                                animate={{ y: [0, 10, 0] }}
+                                                transition={{ duration: 4, repeat: Infinity }}
+                                            >
+                                                <span className="text-white text-sm font-medium">AI Generated</span>
+                                            </motion.div>
+                                        </div>
+                                        
+                                        <div className="mt-6 space-y-3">
+                                            <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                                <div className="h-full w-3/4 video-progress rounded-full"></div>
+                                            </div>
+                                            <div className="flex justify-between text-sm text-gray-400">
+                                                <span>Course Progress</span>
+                                                <span>75% Complete</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {/* Background Glow */}
+                            <div className="absolute -inset-4 bg-gradient-to-r from-indigo-600 to-purple-600 opacity-30 blur-3xl rounded-full animate-pulse-slow"></div>
+                        </motion.div>
+                    </div>
+                </section>
+            );
+        };
+        
+        // Features Grid
+        const Features = () => {
+            const features = [
+                { icon: 'video', title: '50+ Video Lessons', desc: 'High quality AI tutorials in Sinhala' },
+                { icon: 'smartphone', title: 'Mobile Friendly', desc: 'Learn on any device, anywhere' },
+                { icon: 'award', title: 'Certificate', desc: 'Official completion certificate' },
+                { icon: 'message-circle', title: 'WhatsApp Support', desc: 'Direct help when you need it' },
+                { icon: 'shield', title: 'Secure Payment', desc: 'Bank transfer with receipt verification' },
+                { icon: 'zap', title: 'Lifetime Access', desc: 'Pay once, access forever' },
+            ];
+            
+            return (
+                <section className="py-20 relative">
+                    <div className="max-w-7xl mx-auto px-6">
+                        <div className="text-center mb-16">
+                            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Why Choose <span className="gradient-text">Aura AI</span>?</h2>
+                            <p className="text-gray-400 max-w-2xl mx-auto">Professional AI education designed for Sri Lankan students</p>
+                        </div>
+                        
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {features.map((feature, idx) => (
+                                <motion.div
+                                    key={idx}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: idx * 0.1 }}
+                                    viewport={{ once: true }}
+                                    whileHover={{ y: -5 }}
+                                    className="glass p-6 rounded-2xl hover:border-indigo-500/50 transition-all group"
+                                >
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                        <Icon name={feature.icon} size={24} className="text-indigo-400" />
+                                    </div>
+                                    <h3 className="text-white font-semibold text-lg mb-2">{feature.title}</h3>
+                                    <p className="text-gray-400 text-sm">{feature.desc}</p>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+        
+        // Course Curriculum Preview
+        const Curriculum = () => {
+            const modules = [
+                { title: 'Module 1: AI Basics', lessons: 10, duration: '2.5 hours', locked: false },
+                { title: 'Module 2: ChatGPT Mastery', lessons: 10, duration: '3 hours', locked: true },
+                { title: 'Module 3: Image Generation', lessons: 10, duration: '2.5 hours', locked: true },
+                { title: 'Module 4: Video Creation', lessons: 10, duration: '3 hours', locked: true },
+                { title: 'Module 5: Automation', lessons: 10, duration: '2 hours', locked: true },
+            ];
+            
+            return (
+                <section className="py-20 relative">
+                    <div className="max-w-4xl mx-auto px-6">
+                        <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-12">Course <span className="gradient-text">Curriculum</span></h2>
+                        
+                        <div className="space-y-4">
+                            {modules.map((module, idx) => (
+                                <motion.div
+                                    key={idx}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    whileInView={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: idx * 0.1 }}
+                                    viewport={{ once: true }}
+                                    className="glass p-6 rounded-2xl flex items-center justify-between group hover:border-indigo-500/30 transition-all"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${module.locked ? 'bg-gray-800' : 'bg-gradient-to-br from-indigo-500 to-purple-500'}`}>
+                                            {module.locked ? <Icon name="lock" size={20} className="text-gray-500" /> : <Icon name="play" size={20} className="text-white" />}
+                                        </div>
+                                        <div>
+                                            <h3 className="text-white font-semibold">{module.title}</h3>
+                                            <p className="text-gray-400 text-sm">{module.lessons} Lessons • {module.duration}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-gray-500">
+                                        {module.locked ? <Icon name="chevron-right" size={20} /> : <span className="text-indigo-400 text-sm font-medium">Start</span>}
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+        
+        // Social Links Section
+        const SocialLinks = () => {
+            const socials = [
+                { name: 'WhatsApp', icon: 'message-circle', color: 'bg-green-500', link: 'https://wa.me/94762196055', handle: '076 219 6055' },
+                { name: 'Facebook', icon: 'facebook', color: 'bg-blue-600', link: 'https://www.facebook.com/Auraaiareations', handle: 'Aura AI Creations' },
+                { name: 'TikTok', icon: 'music', color: 'bg-black border border-gray-700', link: 'https://www.tiktok.com/@ai_podda2', handle: '@ai_podda2' },
+            ];
+            
+            return (
+                <section className="py-20 relative">
+                    <div className="max-w-4xl mx-auto px-6 text-center">
+                        <h2 className="text-3xl font-bold text-white mb-8">Connect With <span className="gradient-text">Us</span></h2>
+                        
+                        <div className="flex flex-wrap justify-center gap-6">
+                            {socials.map((social, idx) => (
+                                <motion.a
+                                    key={idx}
+                                    href={social.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    whileInView={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: idx * 0.1 }}
+                                    viewport={{ once: true }}
+                                    whileHover={{ scale: 1.1, y: -5 }}
+                                    className="glass p-6 rounded-2xl flex flex-col items-center gap-3 min-w-[160px] hover:border-indigo-500/50 transition-all"
+                                >
+                                    <div className={`w-14 h-14 rounded-full ${social.color} flex items-center justify-center`}>
+                                        <Icon name={social.icon} size={28} className="text-white" />
+                                    </div>
+                                    <div>
+                                        <div className="text-white font-semibold">{social.name}</div>
+                                        <div className="text-gray-400 text-sm">{social.handle}</div>
+                                    </div>
+                                </motion.a>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+        
+        // Authentication Page
+        const AuthPage = ({ setPage, setIsLoggedIn, setUser }) => {
+            const [isLogin, setIsLogin] = useState(true);
+            const [step, setStep] = useState(1);
+            const [formData, setFormData] = useState({
+                name: '',
+                email: '',
+                phone: '',
+                password: '',
+                amount: '9500',
+                receipt: null,
+                authCode: ''
+            });
+            
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (isLogin) {
+                    // Simulate login
+                    setUser({ name: formData.email.split('@')[0], email: formData.email });
+                    setIsLoggedIn(true);
+                    setPage('dashboard');
+                } else {
+                    if (step < 3) {
+                        setStep(step + 1);
+                    } else {
+                        // Simulate registration
+                        setUser({ name: formData.name, email: formData.email, phone: formData.phone });
+                        setIsLoggedIn(true);
+                        setPage('dashboard');
+                    }
+                }
+            };
+            
+            return (
+                <div className="min-h-screen flex items-center justify-center pt-20 px-4">
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="w-full max-w-md"
+                    >
+                        <div className="glass-strong p-8 rounded-3xl">
+                            <div className="text-center mb-8">
+                                <h2 className="text-2xl font-bold text-white mb-2">
+                                    {isLogin ? 'Welcome Back' : 'Join Aura AI'}
+                                </h2>
+                                <p className="text-gray-400 text-sm">
+                                    {isLogin ? 'Login to continue learning' : 'Step ' + step + ' of 3'}
+                                </p>
+                            </div>
+                            
+                            {!isLogin && (
+                                <div className="flex gap-2 mb-6">
+                                    {[1, 2, 3].map((s) => (
+                                        <div key={s} className={`flex-1 h-1 rounded-full ${s <= step ? 'bg-gradient-to-r from-indigo-500 to-purple-500' : 'bg-gray-700'}`}></div>
+                                    ))}
+                                </div>
+                            )}
+                            
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                {isLogin ? (
+                                    <>
+                                        <div>
+                                            <label className="block text-gray-400 text-sm mb-2">Email</label>
+                                            <input 
+                                                type="email" 
+                                                className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:border-indigo-500 focus:outline-none transition-colors"
+                                                placeholder="your@email.com"
+                                                value={formData.email}
+                                                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-gray-400 text-sm mb-2">Password</label>
+                                            <input 
+                                                type="password" 
+                                                className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:border-indigo-500 focus:outline-none transition-colors"
+                                                placeholder="••••••••"
+                                                value={formData.password}
+                                                onChange={(e) => setFormData({...formData, password: e.target.value})}
+                                                required
+                                            />
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        {step === 1 && (
+                                            <>
+                                                <div>
+                                                    <label className="block text-gray-400 text-sm mb-2">Full Name</label>
+                                                    <input 
+                                                        type="text" 
+                                                        className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:border-indigo-500 focus:outline-none transition-colors"
+                                                        placeholder="John Doe"
+                                                        value={formData.name}
+                                                        onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                                        required
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-gray-400 text-sm mb-2">Email</label>
+                                                    <input 
+                                                        type="email" 
+                                                        className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:border-indigo-500 focus:outline-none transition-colors"
+                                                        placeholder="your@email.com"
+                                                        value={formData.email}
+                                                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                                        required
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-gray-400 text-sm mb-2">Phone</label>
+                                                    <input 
+                                                        type="tel" 
+                                                        className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:border-indigo-500 focus:outline-none transition-colors"
+                                                        placeholder="07X XXX XXXX"
+                                                        value={formData.phone}
+                                                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                                                        required
+                                                    />
+                                                </div>
+                                            </>
+                                        )}
+                                        
+                                        {step === 2 && (
+                                            <>
+                                                <div className="p-4 rounded-xl bg-gray-800/50 border border-gray-700 mb-4">
+                                                    <div className="text-white font-semibold mb-2">Bank Transfer Details</div>
+                                                    <div className="text-gray-400 text-sm space-y-1">
+                                                        <div>Bank: Commercial Bank</div>
+                                                        <div>Account: Aura AI Creations</div>
+                                                        <div>Acc No: 1234567890</div>
+                                                        <div>Branch: Colombo</div>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-gray-400 text-sm mb-2">Amount Paid (LKR)</label>
+                                                    <input 
+                                                        type="text" 
+                                                        className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:border-indigo-500 focus:outline-none transition-colors"
+                                                        value="9,500.00"
+                                                        readOnly
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-gray-400 text-sm mb-2">Upload Receipt</label>
+                                                    <div className="border-2 border-dashed border-gray-700 rounded-xl p-6 text-center hover:border-indigo-500 transition-colors cursor-pointer">
+                                                        <Icon name="upload" size={24} className="mx-auto text-gray-500 mb-2" />
+                                                        <span className="text-gray-400 text-sm">Click to upload receipt</span>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+                                        
+                                        {step === 3 && (
+                                            <>
+                                                <div className="text-center mb-4">
+                                                    <div className="w-32 h-32 mx-auto bg-white p-2 rounded-xl mb-4">
+                                                        <div className="w-full h-full bg-gray-900 flex items-center justify-center text-xs text-gray-500">
+                                                            QR Code
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-gray-400 text-sm">Scan with Google Authenticator</p>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-gray-400 text-sm mb-2">Verification Code</label>
+                                                    <input 
+                                                        type="text" 
+                                                        className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:border-indigo-500 focus:outline-none transition-colors text-center text-2xl tracking-widest"
+                                                        placeholder="000000"
+                                                        maxLength="6"
+                                                        value={formData.authCode}
+                                                        onChange={(e) => setFormData({...formData, authCode: e.target.value})}
+                                                        required
+                                                    />
+                                                </div>
+                                            </>
+                                        )}
+                                    </>
+                                )}
+                                
+                                <button 
+                                    type="submit"
+                                    className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-indigo-500/25 transition-all"
+                                >
+                                    {isLogin ? 'Login' : (step === 3 ? 'Complete Registration' : 'Continue')}
+                                </button>
+                            </form>
+                            
+                            <div className="mt-6 text-center">
+                                <button 
+                                    onClick={() => { setIsLogin(!isLogin); setStep(1); }}
+                                    className="text-gray-400 text-sm hover:text-white transition-colors"
+                                >
+                                    {isLogin ? "Don't have an account? Register" : "Already have an account? Login"}
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+            );
+        };
+        
+        // Dashboard
+        const Dashboard = ({ user, setPage }) => {
+            const [activeModule, setActiveModule] = useState(0);
+            const [progress, setProgress] = useState({
+                0: 100, 1: 60, 2: 0, 3: 0, 4: 0
+            });
+            
+            const modules = [
+                { 
+                    title: 'AI Foundations', 
+                    lessons: [
+                        { id: 1, title: 'What is AI?', duration: '15:00', completed: true },
+                        { id: 2, title: 'History of AI', duration: '12:30', completed: true },
+                        { id: 3, title: 'Types of AI', duration: '18:45', completed: true },
+                        { id: 4, title: 'Machine Learning Basics', duration: '20:00', completed: false, current: true },
+                    ]
+                },
+                { 
+                    title: 'ChatGPT Mastery', 
+                    lessons: [
+                        { id: 5, title: 'Introduction to ChatGPT', duration: '10:00', completed: false },
+                        { id: 6, title: 'Prompt Engineering', duration: '25:00', completed: false },
+                    ]
+                },
+            ];
+            
+            return (
+                <div className="min-h-screen pt-24 pb-12 px-4">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="grid lg:grid-cols-3 gap-8">
+                            {/* Sidebar */}
+                            <div className="lg:col-span-1">
+                                <motion.div 
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    className="glass-strong rounded-2xl p-6 mb-6"
+                                >
+                                    <div className="flex items-center gap-4 mb-6">
+                                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 p-0.5">
+                                            <div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center text-2xl font-bold text-white">
+                                                {user?.name?.[0] || 'U'}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h3 className="text-white font-semibold">{user?.name || 'Student'}</h3>
+                                            <p className="text-gray-400 text-sm">{user?.email}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="space-y-4">
+                                        <div>
+                                            <div className="flex justify-between text-sm mb-2">
+                                                <span className="text-gray-400">Overall Progress</span>
+                                                <span className="text-white">35%</span>
+                                            </div>
+                                            <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                                <div className="h-full w-[35%] video-progress rounded-full"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="grid grid-cols-2 gap-4 pt-4">
+                                            <div className="glass p-3 rounded-xl text-center">
+                                                <div className="text-2xl font-bold text-white">12</div>
+                                                <div className="text-gray-400 text-xs">Completed</div>
+                                            </div>
+                                            <div className="glass p-3 rounded-xl text-center">
+                                                <div className="text-2xl font-bold text-white">38</div>
+                                                <div className="text-gray-400 text-xs">Remaining</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                                
+                                <motion.div 
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.1 }}
+                                    className="glass rounded-2xl p-4"
+                                >
+                                    <h4 className="text-white font-semibold mb-4 px-2">Course Modules</h4>
+                                    <div className="space-y-2">
+                                        {modules.map((module, idx) => (
+                                            <button
+                                                key={idx}
+                                                onClick={() => setActiveModule(idx)}
+                                                className={`w-full text-left p-3 rounded-xl transition-all flex items-center justify-between ${activeModule === idx ? 'bg-indigo-600/20 border border-indigo-500/30' : 'hover:bg-white/5'}`}
+                                            >
+                                                <div>
+                                                    <div className="text-white text-sm font-medium">{module.title}</div>
+                                                    <div className="text-gray-500 text-xs">{module.lessons.length} lessons</div>
+                                                </div>
+                                                {progress[idx] === 100 && <Icon name="check-circle" size={16} className="text-green-400" />}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </motion.div>
+                            </div>
+                            
+                            {/* Main Content */}
+                            <div className="lg:col-span-2">
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="glass-strong rounded-2xl overflow-hidden mb-6"
+                                >
+                                    <div className="aspect-video bg-gray-900 relative">
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <div className="text-center">
+                                                <motion.div 
+                                                    className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center mx-auto mb-4 cursor-pointer hover:scale-110 transition-transform"
+                                                    whileHover={{ scale: 1.1 }}
+                                                >
+                                                    <Icon name="play" size={32} className="text-white ml-1" />
+                                                </motion.div>
+                                                <p className="text-gray-400">Click to play video</p>
+                                            </div>
+                                        </div>
+                                        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+                                            <div className="h-1 bg-gray-700 rounded-full overflow-hidden mb-2">
+                                                <div className="h-full w-1/3 video-progress rounded-full"></div>
+                                            </div>
+                                            <div className="flex justify-between text-sm text-gray-300">
+                                                <span>12:45 / 20:00</span>
+                                                <span>HD</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="p-6">
+                                        <h2 className="text-xl font-bold text-white mb-2">Machine Learning Basics</h2>
+                                        <p className="text-gray-400 text-sm mb-4">Learn the fundamental concepts of machine learning and how it powers modern AI applications.</p>
+                                        <div className="flex gap-3">
+                                            <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2">
+                                                <Icon name="check" size={16} />
+                                                Mark Complete
+                                            </button>
+                                            <button className="px-4 py-2 glass text-white rounded-lg text-sm font-medium hover:bg-white/10 transition-colors flex items-center gap-2">
+                                                <Icon name="download" size={16} />
+                                                Resources
+                                            </button>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                                
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.1 }}
+                                    className="glass rounded-2xl p-6"
+                                >
+                                    <h3 className="text-white font-semibold mb-4">Module Lessons</h3>
+                                    <div className="space-y-3">
+                                        {modules[activeModule]?.lessons.map((lesson, idx) => (
+                                            <div 
+                                                key={lesson.id}
+                                                className={`p-4 rounded-xl flex items-center gap-4 cursor-pointer transition-all ${lesson.current ? 'bg-indigo-600/20 border border-indigo-500/30' : 'hover:bg-white/5'}`}
+                                            >
+                                                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${lesson.completed ? 'bg-green-500/20 text-green-400' : lesson.current ? 'bg-indigo-500/20 text-indigo-400' : 'bg-gray-800 text-gray-500'}`}>
+                                                    {lesson.completed ? <Icon name="check" size={18} /> : <Icon name="play" size={18} />}
+                                                </div>
+                                                <div className="flex-1">
+                                                    <div className="text-white font-medium text-sm">{lesson.title}</div>
+                                                    <div className="text-gray-500 text-xs">{lesson.duration}</div>
+                                                </div>
+                                                {lesson.current && <span className="text-xs text-indigo-400 font-medium">Now Playing</span>}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </motion.div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
+        // Footer
+        const Footer = () => {
+            return (
+                <footer className="border-t border-gray-800 py-12 mt-20">
+                    <div className="max-w-7xl mx-auto px-6">
+                        <div className="grid md:grid-cols-4 gap-8 mb-8">
+                            <div>
+                                <div className="flex items-center gap-2 mb-4">
+                                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold">A</div>
+                                    <span className="text-lg font-bold text-white">Aura AI</span>
+                                </div>
+                                <p className="text-gray-400 text-sm">Professional AI education platform for Sri Lankan students.</p>
+                            </div>
+                            <div>
+                                <h4 className="text-white font-semibold mb-4">Quick Links</h4>
+                                <ul className="space-y-2 text-sm text-gray-400">
+                                    <li><a href="#" className="hover:text-white transition-colors">Courses</a></li>
+                                    <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
+                                    <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 className="text-white font-semibold mb-4">Support</h4>
+                                <ul className="space-y-2 text-sm text-gray-400">
+                                    <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
+                                    <li><a href="#" className="hover:text-white transition-colors">WhatsApp Support</a></li>
+                                    <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 className="text-white font-semibold mb-4">Contact</h4>
+                                <ul className="space-y-2 text-sm text-gray-400">
+                                    <li>WhatsApp: 076 219 6055</li>
+                                    <li>Colombo, Sri Lanka</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div className="border-t border-gray-800 pt-8 text-center text-gray-500 text-sm">
+                            © 2024 Aura AI Creations. All rights reserved.
+                        </div>
+                    </div>
+                </footer>
+            );
+        };
+        
+        // Main App Component
+        const App = () => {
+            const [currentPage, setPage] = useState('home');
+            const [isLoggedIn, setIsLoggedIn] = useState(false);
+            const [user, setUser] = useState(null);
+            
+            useEffect(() => {
+                initParticles();
+            }, []);
+            
+            const renderPage = () => {
+                switch(currentPage) {
+                    case 'home':
+                        return (
+                            <>
+                                <Hero setPage={setPage} />
+                                <Features />
+                                <Curriculum />
+                                <SocialLinks />
+                            </>
+                        );
+                    case 'auth':
+                        return <AuthPage setPage={setPage} setIsLoggedIn={setIsLoggedIn} setUser={setUser} />;
+                    case 'dashboard':
+                        return isLoggedIn ? <Dashboard user={user} setPage={setPage} /> : <AuthPage setPage={setPage} setIsLoggedIn={setIsLoggedIn} setUser={setUser} />;
+                    case 'courses':
+                        return (
+                            <>
+                                <div className="pt-32 pb-12 px-6 text-center">
+                                    <h1 className="text-4xl font-bold text-white mb-4">Our <span className="gradient-text">Courses</span></h1>
+                                    <p className="text-gray-400 max-w-2xl mx-auto">Comprehensive AI education designed for beginners to advanced learners</p>
+                                </div>
+                                <Curriculum />
+                                <SocialLinks />
+                            </>
+                        );
+                    case 'about':
+                        return (
+                            <div className="min-h-screen flex items-center justify-center pt-20">
+                                <div className="max-w-3xl mx-auto px-6 text-center">
+                                    <h1 className="text-4xl font-bold text-white mb-6">About <span className="gradient-text">Aura AI</span></h1>
+                                    <p className="text-gray-400 text-lg leading-relaxed mb-8">
+                                        Aura AI Creations is a leading AI education platform in Sri Lanka, dedicated to making artificial intelligence accessible to everyone. Our comprehensive video course covers everything from basic AI concepts to advanced applications.
+                                    </p>
+                                    <SocialLinks />
+                                </div>
+                            </div>
+                        );
+                    default:
+                        return <Hero setPage={setPage} />;
+                }
+            };
+            
+            return (
+                <div className="min-h-screen text-gray-100">
+                    <Navigation 
+                        currentPage={currentPage} 
+                        setPage={setPage} 
+                        isLoggedIn={isLoggedIn} 
+                        user={user} 
+                    />
+                    <AnimatePresence mode="wait">
+                        <motion.main
+                            key={currentPage}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.3 }}
+                        >
+                            {renderPage()}
+                        </motion.main>
+                    </AnimatePresence>
+                    <Footer />
+                </div>
+            );
+        };
+        
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
