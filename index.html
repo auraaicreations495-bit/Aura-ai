@@ -175,6 +175,25 @@
             object-fit: cover;
             border-radius: 1rem;
         }
+        
+        .module-locked {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .module-locked::after {
+            content: 'Complete Previous Module';
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6366f1;
+            font-size: 0.875rem;
+            font-weight: 600;
+            backdrop-filter: blur(4px);
+        }
     </style>
 </head>
 <body>
@@ -501,7 +520,7 @@
                             </h1>
                             
                             <p className="text-gray-400 text-lg mb-8 max-w-lg leading-relaxed">
-                                50+ Professional Video Lessons • Sinhala Medium • Lifetime Access • 
+                                13 Professional Video Lessons • Sinhala Medium • Lifetime Access • 
                                 Certificate Included • Rs. 9,500 Only
                             </p>
                             
@@ -524,7 +543,7 @@
                                 </div>
                                 <div className="w-px h-12 bg-gray-700"></div>
                                 <div>
-                                    <div className="text-3xl font-bold text-white">50+</div>
+                                    <div className="text-3xl font-bold text-white">13</div>
                                     <div className="text-gray-500 text-sm">Video Lessons</div>
                                 </div>
                             </div>
@@ -1096,126 +1115,120 @@
             // Course modules with Google Drive video links and thumbnails
             const modules = [
                 { 
-                    title: 'Module 1: AI Foundations', 
+                    title: 'AI Foundations - Basic Lessons', 
                     lessons: [
                         { 
                             id: 1, 
-                            title: 'AI හැදින්විම', 
+                            title: 'AI හැදින්විම (Introduction to AI)', 
                             duration: '15:00', 
                             videoUrl: 'https://drive.google.com/file/d/1GZ-h7SIAG5bOIavwLng1Sh1N2BdUmIW6/preview',
                             thumbnail: 'https://drive.google.com/thumbnail?id=1GZ-h7SIAG5bOIavwLng1Sh1N2BdUmIW6&sz=w1000'
                         },
                         { 
                             id: 2, 
-                            title: 'Lesson 1', 
+                            title: 'Lesson 1 - AI Basics', 
                             duration: '12:30', 
                             videoUrl: 'https://drive.google.com/file/d/10-4GWQ_FAcUNrdnC3zqtOnGXSmsX2Y2R/preview',
                             thumbnail: 'https://drive.google.com/thumbnail?id=10-4GWQ_FAcUNrdnC3zqtOnGXSmsX2Y2R&sz=w1000'
                         },
                         { 
                             id: 3, 
-                            title: 'Lesson 2', 
+                            title: 'Lesson 2 - Getting Started', 
                             duration: '18:45', 
                             videoUrl: 'https://drive.google.com/file/d/1uHMAdhZJSqwYar8XYV_NrUQcbA0i6g6-/preview',
                             thumbnail: 'https://drive.google.com/thumbnail?id=1uHMAdhZJSqwYar8XYV_NrUQcbA0i6g6-&sz=w1000'
                         },
                         { 
                             id: 4, 
-                            title: 'Lesson 3', 
+                            title: 'Lesson 3 - Core Concepts', 
                             duration: '20:00', 
                             videoUrl: 'https://drive.google.com/file/d/1nQdUC8NrFpd-GiTgvSmYpsdVDK6r3lJy/preview',
                             thumbnail: 'https://drive.google.com/thumbnail?id=1nQdUC8NrFpd-GiTgvSmYpsdVDK6r3lJy&sz=w1000'
                         },
                         { 
                             id: 5, 
-                            title: 'Lesson 4', 
+                            title: 'Lesson 4 - Practical Applications', 
                             duration: '22:15', 
                             videoUrl: 'https://drive.google.com/file/d/10hgirQhLVu5IoalRBLnIW7CMyl9vQiy_/preview',
                             thumbnail: 'https://drive.google.com/thumbnail?id=10hgirQhLVu5IoalRBLnIW7CMyl9vQiy_&sz=w1000'
                         },
                         { 
                             id: 6, 
-                            title: 'Lesson 5', 
+                            title: 'Lesson 5 - Advanced Techniques', 
                             duration: '25:00', 
                             videoUrl: 'https://drive.google.com/file/d/1HXyLn9wDiGiLCelEXr0jipPIcQ5EjfMC/preview',
                             thumbnail: 'https://drive.google.com/thumbnail?id=1HXyLn9wDiGiLCelEXr0jipPIcQ5EjfMC&sz=w1000'
                         },
                         { 
                             id: 7, 
-                            title: 'Lesson 6', 
+                            title: 'Lesson 6 - Final Project Setup', 
                             duration: '16:30', 
                             videoUrl: 'https://drive.google.com/file/d/1kswDC7oT5YV9SfqdBlmARDJj6_eiyJzD/preview',
                             thumbnail: 'https://drive.google.com/thumbnail?id=1kswDC7oT5YV9SfqdBlmARDJj6_eiyJzD&sz=w1000'
+                        }
+                    ]
+                },
+                { 
+                    title: 'Founder Mastery Course', 
+                    lessons: [
+                        { 
+                            id: 8, 
+                            title: 'Founder Lesson 1 - Business Basics', 
+                            duration: '20:00', 
+                            videoUrl: 'https://drive.google.com/file/d/1LmDbGoHxZOlRLnShNKXxyjy0aI0g4UA8/preview',
+                            thumbnail: 'https://drive.google.com/thumbnail?id=1LmDbGoHxZOlRLnShNKXxyjy0aI0g4UA8&sz=w1000'
                         },
-                        { id: 8, title: 'Future of AI', duration: '14:20', videoUrl: '', thumbnail: '' },
-                        { id: 9, title: 'AI Ethics', duration: '19:45', videoUrl: '', thumbnail: '' },
-                        { id: 10, title: 'Module 1 Quiz', duration: '10:00', videoUrl: '', thumbnail: '', isQuiz: true },
+                        { 
+                            id: 9, 
+                            title: 'Founder Lesson 2 - Strategy Planning', 
+                            duration: '22:30', 
+                            videoUrl: 'https://drive.google.com/file/d/1SBag6taDaltJOhJXfTrAAuqsk5Dq60zu/preview',
+                            thumbnail: 'https://drive.google.com/thumbnail?id=1SBag6taDaltJOhJXfTrAAuqsk5Dq60zu&sz=w1000'
+                        },
+                        { 
+                            id: 10, 
+                            title: 'Founder Lesson 3 - Market Analysis', 
+                            duration: '25:00', 
+                            videoUrl: 'https://drive.google.com/file/d/1scvSqL8t2OjPLXTBWJPSEyxPjKjvwQ65/preview',
+                            thumbnail: 'https://drive.google.com/thumbnail?id=1scvSqL8t2OjPLXTBWJPSEyxPjKjvwQ65&sz=w1000'
+                        },
+                        { 
+                            id: 11, 
+                            title: 'Founder Lesson 4 - Growth Hacking', 
+                            duration: '23:00', 
+                            videoUrl: 'https://drive.google.com/file/d/1ErUKP4NjFbUk2q2NyTCHJsf8whOm2YEt/preview',
+                            thumbnail: 'https://drive.google.com/thumbnail?id=1ErUKP4NjFbUk2q2NyTCHJsf8whOm2YEt&sz=w1000'
+                        },
+                        { 
+                            id: 12, 
+                            title: 'Founder Lesson 5 - Scaling Up', 
+                            duration: '27:00', 
+                            videoUrl: 'https://drive.google.com/file/d/15qs0O0vPuCiLbaNU0gTIfyNHaqce8D7q/preview',
+                            thumbnail: 'https://drive.google.com/thumbnail?id=15qs0O0vPuCiLbaNU0gTIfyNHaqce8D7q&sz=w1000'
+                        },
+                        { 
+                            id: 13, 
+                            title: 'Founder Lesson 6 - Final Mastery', 
+                            duration: '30:00', 
+                            videoUrl: 'https://drive.google.com/file/d/18mSOecPmCVjpXaxHtQyPC24nwR57prmX/preview',
+                            thumbnail: 'https://drive.google.com/thumbnail?id=18mSOecPmCVjpXaxHtQyPC24nwR57prmX&sz=w1000'
+                        }
                     ]
-                },
-                { 
-                    title: 'Module 2: ChatGPT Mastery', 
-                    lessons: [
-                        { id: 11, title: 'Getting Started with ChatGPT', duration: '12:00', videoUrl: '', thumbnail: '' },
-                        { id: 12, title: 'Prompt Engineering Basics', duration: '20:30', videoUrl: '', thumbnail: '' },
-                        { id: 13, title: 'Advanced Prompting', duration: '18:15', videoUrl: '', thumbnail: '' },
-                        { id: 14, title: 'ChatGPT for Writing', duration: '15:45', videoUrl: '', thumbnail: '' },
-                        { id: 15, title: 'ChatGPT for Coding', duration: '22:00', videoUrl: '', thumbnail: '' },
-                        { id: 16, title: 'ChatGPT for Business', duration: '19:30', videoUrl: '', thumbnail: '' },
-                        { id: 17, title: 'Custom GPTs', duration: '17:20', videoUrl: '', thumbnail: '' },
-                        { id: 18, title: 'API Integration', duration: '24:10', videoUrl: '', thumbnail: '' },
-                        { id: 19, title: 'Automation with ChatGPT', duration: '21:45', videoUrl: '', thumbnail: '' },
-                        { id: 20, title: 'Module 2 Project', duration: '30:00', videoUrl: '', thumbnail: '', isProject: true },
-                    ]
-                },
-                { 
-                    title: 'Module 3: Image Generation', 
-                    lessons: [
-                        { id: 21, title: 'Intro to AI Art', duration: '14:00', videoUrl: '', thumbnail: '' },
-                        { id: 22, title: 'Midjourney Basics', duration: '20:15', videoUrl: '', thumbnail: '' },
-                        { id: 23, title: 'Advanced Midjourney', duration: '23:30', videoUrl: '', thumbnail: '' },
-                        { id: 24, title: 'DALL-E 3 Guide', duration: '18:45', videoUrl: '', thumbnail: '' },
-                        { id: 25, title: 'Stable Diffusion', duration: '25:20', videoUrl: '', thumbnail: '' },
-                        { id: 26, title: 'Prompt Crafting for Images', duration: '19:10', videoUrl: '', thumbnail: '' },
-                        { id: 27, title: 'Image Editing with AI', duration: '16:40', videoUrl: '', thumbnail: '' },
-                        { id: 28, title: 'Logo Design with AI', duration: '15:30', videoUrl: '', thumbnail: '' },
-                        { id: 29, title: 'Commercial Use & Rights', duration: '12:20', videoUrl: '', thumbnail: '' },
-                        { id: 30, title: 'Portfolio Creation', duration: '28:00', videoUrl: '', thumbnail: '', isProject: true },
-                    ]
-                },
-                { 
-                    title: 'Module 4: Video Creation', 
-                    lessons: [
-                        { id: 31, title: 'AI Video Overview', duration: '13:30', videoUrl: '', thumbnail: '' },
-                        { id: 32, title: 'Text to Video Tools', duration: '21:15', videoUrl: '', thumbnail: '' },
-                        { id: 33, title: 'HeyGen & Avatars', duration: '19:45', videoUrl: '', thumbnail: '' },
-                        { id: 34, title: 'Synthesia Tutorial', duration: '17:30', videoUrl: '', thumbnail: '' },
-                        { id: 35, title: 'Runway ML Guide', duration: '24:00', videoUrl: '', thumbnail: '' },
-                        { id: 36, title: 'Video Editing with AI', duration: '20:20', videoUrl: '', thumbnail: '' },
-                        { id: 37, title: 'Voice Cloning', duration: '16:50', videoUrl: '', thumbnail: '' },
-                        { id: 38, title: 'Subtitle Generation', duration: '14:40', videoUrl: '', thumbnail: '' },
-                        { id: 39, title: 'YouTube Automation', duration: '22:30', videoUrl: '', thumbnail: '' },
-                        { id: 40, title: 'Final Video Project', duration: '35:00', videoUrl: '', thumbnail: '', isProject: true },
-                    ]
-                },
-                { 
-                    title: 'Module 5: Automation & Business', 
-                    lessons: [
-                        { id: 41, title: 'AI Automation Intro', duration: '15:20', videoUrl: '', thumbnail: '' },
-                        { id: 42, title: 'Zapier + AI', duration: '20:45', videoUrl: '', thumbnail: '' },
-                        { id: 43, title: 'Make.com Tutorial', duration: '19:15', videoUrl: '', thumbnail: '' },
-                        { id: 44, title: 'Building AI Agents', duration: '25:30', videoUrl: '', thumbnail: '' },
-                        { id: 45, title: 'AI for Marketing', duration: '18:00', videoUrl: '', thumbnail: '' },
-                        { id: 46, title: 'AI for Customer Service', duration: '16:40', videoUrl: '', thumbnail: '' },
-                        { id: 47, title: 'Freelancing with AI', duration: '22:10', videoUrl: '', thumbnail: '' },
-                        { id: 48, title: 'Starting AI Business', duration: '24:30', videoUrl: '', thumbnail: '' },
-                        { id: 49, title: 'Scaling with AI', duration: '20:50', videoUrl: '', thumbnail: '' },
-                        { id: 50, title: 'Final Certification', duration: '15:00', videoUrl: '', thumbnail: '', isCertification: true },
-                    ]
-                },
+                }
             ];
             
-            const handleLessonClick = (lesson, index) => {
-                const prevLesson = modules[activeModule].lessons[index - 1];
+            // Check if first module is completed
+            const isFirstModuleCompleted = modules[0].lessons.every(l => completedLessons.includes(l.id));
+            
+            const handleLessonClick = (lesson, index, moduleIndex) => {
+                // Check if trying to access second module without completing first
+                if (moduleIndex === 1 && !isFirstModuleCompleted) {
+                    alert('Complete all lessons in AI Foundations - Basic Lessons to unlock Founder Mastery Course');
+                    return;
+                }
+                
+                const currentModule = modules[moduleIndex];
+                const prevLesson = currentModule.lessons[index - 1];
                 const isLocked = index > 0 && !completedLessons.includes(prevLesson?.id);
                 
                 if (isLocked) {
@@ -1308,47 +1321,56 @@
                                 >
                                     <h4 className="text-white font-semibold mb-4 px-2">Course Modules</h4>
                                     <div className="space-y-2">
-                                        {modules.map((module, idx) => (
-                                            <div key={idx} className="mb-4">
-                                                <button
-                                                    onClick={() => setActiveModule(idx)}
-                                                    className={`w-full text-left p-3 rounded-xl transition-all flex items-center justify-between mb-2 ${activeModule === idx ? 'bg-indigo-600/20 border border-indigo-500/30' : 'hover:bg-white/5'}`}
-                                                >
-                                                    <div>
-                                                        <div className="text-white text-sm font-medium">{module.title}</div>
-                                                        <div className="text-gray-500 text-xs">{module.lessons.length} lessons</div>
-                                                    </div>
-                                                    {module.lessons.every(l => completedLessons.includes(l.id)) && (
-                                                        <Icon name="check-circle" size={16} className="text-green-400" />
+                                        {modules.map((module, idx) => {
+                                            const isModuleLocked = idx === 1 && !isFirstModuleCompleted;
+                                            const isModuleCompleted = module.lessons.every(l => completedLessons.includes(l.id));
+                                            
+                                            return (
+                                                <div key={idx} className={`mb-4 ${isModuleLocked ? 'module-locked' : ''}`}>
+                                                    <button
+                                                        onClick={() => !isModuleLocked && setActiveModule(idx)}
+                                                        className={`w-full text-left p-3 rounded-xl transition-all flex items-center justify-between mb-2 ${activeModule === idx ? 'bg-indigo-600/20 border border-indigo-500/30' : 'hover:bg-white/5'} ${isModuleLocked ? 'cursor-not-allowed' : ''}`}
+                                                        disabled={isModuleLocked}
+                                                    >
+                                                        <div>
+                                                            <div className="text-white text-sm font-medium flex items-center gap-2">
+                                                                {module.title}
+                                                                {isModuleLocked && <Icon name="lock" size={14} className="text-yellow-400" />}
+                                                            </div>
+                                                            <div className="text-gray-500 text-xs">{module.lessons.length} lessons</div>
+                                                        </div>
+                                                        {isModuleCompleted && (
+                                                            <Icon name="check-circle" size={16} className="text-green-400" />
+                                                        )}
+                                                    </button>
+                                                    
+                                                    {activeModule === idx && !isModuleLocked && (
+                                                        <div className="space-y-1 ml-2">
+                                                            {module.lessons.map((lesson, lIdx) => {
+                                                                const isCompleted = completedLessons.includes(lesson.id);
+                                                                const isLocked = lIdx > 0 && !completedLessons.includes(module.lessons[lIdx - 1]?.id);
+                                                                const isActive = activeLesson?.id === lesson.id;
+                                                                
+                                                                return (
+                                                                    <button
+                                                                        key={lesson.id}
+                                                                        onClick={() => handleLessonClick(lesson, lIdx, idx)}
+                                                                        className={`w-full text-left p-2 rounded-lg text-xs flex items-center gap-2 transition-all ${isActive ? 'bg-indigo-500/20 text-indigo-300' : isCompleted ? 'text-green-400' : isLocked ? 'text-gray-600 cursor-not-allowed' : 'text-gray-400 hover:text-white'}`}
+                                                                        disabled={isLocked}
+                                                                    >
+                                                                        {isCompleted ? <Icon name="check-circle" size={12} /> : 
+                                                                         isLocked ? <Icon name="lock" size={12} /> : 
+                                                                         <Icon name="play-circle" size={12} />}
+                                                                        <span className="flex-1 truncate">{lesson.title}</span>
+                                                                        <span className="text-gray-600">{lesson.duration}</span>
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
                                                     )}
-                                                </button>
-                                                
-                                                {activeModule === idx && (
-                                                    <div className="space-y-1 ml-2">
-                                                        {module.lessons.map((lesson, lIdx) => {
-                                                            const isCompleted = completedLessons.includes(lesson.id);
-                                                            const isLocked = lIdx > 0 && !completedLessons.includes(module.lessons[lIdx - 1]?.id);
-                                                            const isActive = activeLesson?.id === lesson.id;
-                                                            
-                                                            return (
-                                                                <button
-                                                                    key={lesson.id}
-                                                                    onClick={() => handleLessonClick(lesson, lIdx)}
-                                                                    className={`w-full text-left p-2 rounded-lg text-xs flex items-center gap-2 transition-all ${isActive ? 'bg-indigo-500/20 text-indigo-300' : isCompleted ? 'text-green-400' : isLocked ? 'text-gray-600 cursor-not-allowed' : 'text-gray-400 hover:text-white'}`}
-                                                                    disabled={isLocked}
-                                                                >
-                                                                    {isCompleted ? <Icon name="check-circle" size={12} /> : 
-                                                                     isLocked ? <Icon name="lock" size={12} /> : 
-                                                                     <Icon name="play-circle" size={12} />}
-                                                                    <span className="flex-1 truncate">{lesson.title}</span>
-                                                                    <span className="text-gray-600">{lesson.duration}</span>
-                                                                </button>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </motion.div>
                             </div>
@@ -1466,6 +1488,11 @@
                                                 </div>
                                                 <h3 className="text-white font-semibold mb-2">Select a Lesson</h3>
                                                 <p className="text-gray-400 text-sm">Choose a lesson from the sidebar to start learning</p>
+                                                {!isFirstModuleCompleted && (
+                                                    <p className="text-yellow-400 text-xs mt-4 max-w-md mx-auto">
+                                                        Complete all 7 lessons in "AI Foundations - Basic Lessons" to unlock "Founder Mastery Course"
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
                                     )}
@@ -1578,7 +1605,7 @@
                                             transition={{ delay: 0.1 }}
                                             className="glass p-6 rounded-2xl hover:border-indigo-500/50 transition-all"
                                         >
-                                            <div className="text-3xl font-bold text-white mb-2">50+</div>
+                                            <div className="text-3xl font-bold text-white mb-2">13</div>
                                             <div className="text-gray-400">Video Lessons</div>
                                         </motion.div>
                                         <motion.div 
