@@ -175,6 +175,30 @@
             object-fit: cover;
             border-radius: 1rem;
         }
+        
+        .unlock-animation {
+            animation: unlockPulse 2s ease-in-out;
+        }
+        
+        @keyframes unlockPulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7); }
+            50% { transform: scale(1.05); box-shadow: 0 0 20px 10px rgba(99, 102, 241, 0.3); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+        }
+        
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #6366f1;
+            position: absolute;
+            animation: confetti-fall 3s ease-out forwards;
+        }
+        
+        @keyframes confetti-fall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
     </style>
 <base target="_blank">
 </head>
@@ -1093,6 +1117,8 @@
             const [completedLessons, setCompletedLessons] = useState([]);
             const [videoProgress, setVideoProgress] = useState(0);
             const [watching, setWatching] = useState(false);
+            const [showUnlockAnimation, setShowUnlockAnimation] = useState(false);
+            const [newlyUnlocked, setNewlyUnlocked] = useState(false);
             
             // Course modules with Google Drive video links and thumbnails - ONLY FIRST 7 LESSONS
             const modules = [
@@ -1152,7 +1178,7 @@
                 },
                 {
                     title: 'Founder Mastery Course',
-                    requiresCompletion: 7, // Requires Lesson 7 to be completed
+                    requiresCompletion: [1, 2, 3, 4, 5, 6, 7], // Requires ALL 7 lessons to be completed
                     lessons: [
                         { 
                             id: 8, 
@@ -1200,8 +1226,38 @@
                 }
             ];
             
-            const handleLessonClick = (lesson, index) => {
-                const prevLesson = modules[activeModule].lessons[index - 1];
+            // Check if all required lessons are completed for a module
+            const isModuleUnlocked = (module) => {
+                if (!module.requiresCompletion) return true;
+                return module.requiresCompletion.every(id => completedLessons.includes(id));
+            };
+            
+            // Check if Founder Mastery was just unlocked
+            useEffect(() => {
+                const founderModule = modules[1];
+                const wasUnlocked = isModuleUnlocked(founderModule);
+                const hadCompletedBefore = completedLessons.length > 0 && completedLessons.length < 7;
+                
+                if (wasUnlocked && completedLessons.length === 7 && hadCompletedBefore) {
+                    setShowUnlockAnimation(true);
+                    setNewlyUnlocked(true);
+                    setTimeout(() => setShowUnlockAnimation(false), 3000);
+                }
+            }, [completedLessons]);
+            
+            const handleLessonClick = (lesson, index, moduleIndex) => {
+                const module = modules[moduleIndex];
+                
+                // Check if module is unlocked
+                if (!isModuleUnlocked(module)) {
+                    const requiredCount = module.requiresCompletion.length;
+                    const completedCount = module.requiresCompletion.filter(id => completedLessons.includes(id)).length;
+                    alert(`Complete all ${requiredCount} lessons in AI Foundations first! (${completedCount}/${requiredCount} completed)`);
+                    return;
+                }
+                
+                const moduleLessons = module.lessons;
+                const prevLesson = moduleLessons[index - 1];
                 const isLocked = index > 0 && !completedLessons.includes(prevLesson?.id);
                 
                 if (isLocked) {
@@ -1216,7 +1272,19 @@
             
             const handleVideoComplete = () => {
                 if (activeLesson && !completedLessons.includes(activeLesson.id)) {
-                    setCompletedLessons([...completedLessons, activeLesson.id]);
+                    const newCompleted = [...completedLessons, activeLesson.id];
+                    setCompletedLessons(newCompleted);
+                    
+                    // Check if all 7 basic lessons are completed
+                    const basicLessons = modules[0].lessons.map(l => l.id);
+                    const allBasicCompleted = basicLessons.every(id => newCompleted.includes(id));
+                    
+                    if (allBasicCompleted && activeLesson.id <= 7) {
+                        // Show unlock notification
+                        setTimeout(() => {
+                            alert('🎉 Congratulations! You have unlocked the Founder Mastery Course!');
+                        }, 500);
+                    }
                 }
                 setWatching(false);
                 setVideoProgress(100);
@@ -1224,6 +1292,7 @@
             
             const totalLessons = modules.reduce((acc, m) => acc + m.lessons.length, 0);
             const overallProgress = Math.round((completedLessons.length / totalLessons) * 100);
+            const founderUnlocked = isModuleUnlocked(modules[1]);
             
             return (
                 <div className="min-h-screen pt-24 pb-12 px-4">
@@ -1294,60 +1363,110 @@
                                 >
                                     <h4 className="text-white font-semibold mb-4 px-2">Course Modules</h4>
                                     <div className="space-y-2">
-                                        {modules.map((module, idx) => (
-                                            <div key={idx} className="mb-4">
-                                                <button
-                                                    onClick={() => setActiveModule(idx)}
-                                                    className={`w-full text-left p-3 rounded-xl transition-all flex items-center justify-between mb-2 ${activeModule === idx ? 'bg-indigo-600/20 border border-indigo-500/30' : 'hover:bg-white/5'}`}
-                                                >
-                                                    <div className="flex-1">
-                                                        <div className="text-white text-sm font-medium flex items-center gap-2">
-                                                            {module.title}
-                                                            {module.requiresCompletion && !completedLessons.includes(module.requiresCompletion) && (
-                                                                <Icon name="lock" size={14} className="text-yellow-500" />
+                                        {modules.map((module, idx) => {
+                                            const unlocked = isModuleUnlocked(module);
+                                            const allCompleted = module.lessons.every(l => completedLessons.includes(l.id));
+                                            const isFounder = idx === 1;
+                                            
+                                            return (
+                                                <div key={idx} className="mb-4">
+                                                    <motion.button
+                                                        onClick={() => unlocked && setActiveModule(idx)}
+                                                        className={`w-full text-left p-3 rounded-xl transition-all flex items-center justify-between mb-2 relative overflow-hidden ${activeModule === idx ? 'bg-indigo-600/20 border border-indigo-500/30' : 'hover:bg-white/5'} ${!unlocked ? 'opacity-60 cursor-not-allowed' : ''} ${isFounder && unlocked && showUnlockAnimation ? 'unlock-animation' : ''}`}
+                                                        disabled={!unlocked}
+                                                        whileHover={unlocked ? { scale: 1.02 } : {}}
+                                                    >
+                                                        {/* Glow effect for newly unlocked */}
+                                                        {isFounder && unlocked && newlyUnlocked && (
+                                                            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 animate-pulse"></div>
+                                                        )}
+                                                        
+                                                        <div className="flex-1 relative z-10">
+                                                            <div className="text-white text-sm font-medium flex items-center gap-2">
+                                                                {module.title}
+                                                                {!unlocked ? (
+                                                                    <Icon name="lock" size={14} className="text-yellow-500" />
+                                                                ) : isFounder && (
+                                                                    <Icon name="unlock" size={14} className="text-green-400" />
+                                                                )}
+                                                            </div>
+                                                            <div className="text-gray-500 text-xs">{module.lessons.length} lessons</div>
+                                                            {!unlocked && module.requiresCompletion && (
+                                                                <div className="text-yellow-500 text-xs mt-1">
+                                                                    Complete AI Foundations to unlock ({completedLessons.filter(id => module.requiresCompletion.includes(id)).length}/{module.requiresCompletion.length})
+                                                                </div>
+                                                            )}
+                                                            {isFounder && unlocked && (
+                                                                <div className="text-green-400 text-xs mt-1 font-semibold">
+                                                                    🎉 Unlocked! Start learning now
+                                                                </div>
                                                             )}
                                                         </div>
-                                                        <div className="text-gray-500 text-xs">{module.lessons.length} lessons</div>
-                                                        {module.requiresCompletion && !completedLessons.includes(module.requiresCompletion) && (
-                                                            <div className="text-yellow-500 text-xs mt-1">Complete Basic Lessons to unlock</div>
+                                                        {allCompleted && (
+                                                            <Icon name="check-circle" size={16} className="text-green-400 relative z-10" />
                                                         )}
-                                                    </div>
-                                                    {module.lessons.every(l => completedLessons.includes(l.id)) && (
-                                                        <Icon name="check-circle" size={16} className="text-green-400" />
+                                                    </motion.button>
+                                                    
+                                                    {activeModule === idx && unlocked && (
+                                                        <div className="space-y-1 ml-2">
+                                                            {module.lessons.map((lesson, lIdx) => {
+                                                                const isCompleted = completedLessons.includes(lesson.id);
+                                                                const isLocked = lIdx > 0 && !completedLessons.includes(module.lessons[lIdx - 1]?.id);
+                                                                const isActive = activeLesson?.id === lesson.id;
+                                                                
+                                                                return (
+                                                                    <button
+                                                                        key={lesson.id}
+                                                                        onClick={() => handleLessonClick(lesson, lIdx, idx)}
+                                                                        className={`w-full text-left p-2 rounded-lg text-xs flex items-center gap-2 transition-all ${isActive ? 'bg-indigo-500/20 text-indigo-300' : isCompleted ? 'text-green-400' : isLocked ? 'text-gray-600 cursor-not-allowed' : 'text-gray-400 hover:text-white'}`}
+                                                                        disabled={isLocked}
+                                                                    >
+                                                                        {isCompleted ? <Icon name="check-circle" size={12} /> : 
+                                                                         isLocked ? <Icon name="lock" size={12} /> : 
+                                                                         <Icon name="play-circle" size={12} />}
+                                                                        <span className="flex-1 truncate">{lesson.title}</span>
+                                                                        <span className="text-gray-600">{lesson.duration}</span>
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
                                                     )}
-                                                </button>
-                                                
-                                                {activeModule === idx && (
-                                                    <div className="space-y-1 ml-2">
-                                                        {module.lessons.map((lesson, lIdx) => {
-                                                            const isCompleted = completedLessons.includes(lesson.id);
-                                                            const isLocked = lIdx > 0 && !completedLessons.includes(module.lessons[lIdx - 1]?.id);
-                                                            const isActive = activeLesson?.id === lesson.id;
-                                                            
-                                                            return (
-                                                                <button
-                                                                    key={lesson.id}
-                                                                    onClick={() => handleLessonClick(lesson, lIdx)}
-                                                                    className={`w-full text-left p-2 rounded-lg text-xs flex items-center gap-2 transition-all ${isActive ? 'bg-indigo-500/20 text-indigo-300' : isCompleted ? 'text-green-400' : isLocked ? 'text-gray-600 cursor-not-allowed' : 'text-gray-400 hover:text-white'}`}
-                                                                    disabled={isLocked}
-                                                                >
-                                                                    {isCompleted ? <Icon name="check-circle" size={12} /> : 
-                                                                     isLocked ? <Icon name="lock" size={12} /> : 
-                                                                     <Icon name="play-circle" size={12} />}
-                                                                    <span className="flex-1 truncate">{lesson.title}</span>
-                                                                    <span className="text-gray-600">{lesson.duration}</span>
-                                                                </button>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </motion.div>
                             </div>
                             
                             <div className="lg:col-span-2">
+                                {/* Unlock Notification Banner */}
+                                {founderUnlocked && newlyUnlocked && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: -20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-indigo-600/20 to-purple-600/20 border border-indigo-500/30"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+                                                <Icon name="trophy" size={24} className="text-white" />
+                                            </div>
+                                            <div className="flex-1">
+                                                <h3 className="text-white font-bold text-lg">🎉 Founder Mastery Course Unlocked!</h3>
+                                                <p className="text-gray-300 text-sm">Congratulations! You have completed all basic lessons and unlocked the advanced course.</p>
+                                            </div>
+                                            <button 
+                                                onClick={() => {
+                                                    setActiveModule(1);
+                                                    setNewlyUnlocked(false);
+                                                }}
+                                                className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg text-sm font-medium hover:shadow-lg transition-all"
+                                            >
+                                                Start Now
+                                            </button>
+                                        </div>
+                                    </motion.div>
+                                )}
+                                
                                 <motion.div
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
@@ -1460,6 +1579,17 @@
                                                 </div>
                                                 <h3 className="text-white font-semibold mb-2">Select a Lesson</h3>
                                                 <p className="text-gray-400 text-sm">Choose a lesson from the sidebar to start learning</p>
+                                                
+                                                {founderUnlocked && (
+                                                    <motion.button
+                                                        initial={{ opacity: 0 }}
+                                                        animate={{ opacity: 1 }}
+                                                        onClick={() => setActiveModule(1)}
+                                                        className="mt-6 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg transition-all"
+                                                    >
+                                                        🚀 Start Founder Mastery Course
+                                                    </motion.button>
+                                                )}
                                             </div>
                                         </div>
                                     )}
