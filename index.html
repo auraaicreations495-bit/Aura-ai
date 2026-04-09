@@ -5,23 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aura AI Creations - AI Video Course Platform</title>
     
-    <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     
-    <!-- Babel for JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Framer Motion -->
     <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
     
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+Sinhala:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <script>
@@ -116,7 +110,6 @@
             text-align: center;
         }
         
-        /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -234,26 +227,19 @@
         const generateTOTP = async (secret, timeStep = null) => {
             try {
                 const step = timeStep || Math.floor(Date.now() / 30000);
-                
-                // Convert time step to 8-byte array (big-endian)
                 const timeBuffer = new ArrayBuffer(8);
                 const timeView = new DataView(timeBuffer);
                 timeView.setUint32(4, step, false);
                 
-                // Decode base32 secret
                 const keyBytes = base32Decode(secret);
-                
-                // Calculate HMAC-SHA1
                 const hmac = await hmacSha1(keyBytes, timeBuffer);
                 
-                // Dynamic truncation
                 const offset = hmac[hmac.length - 1] & 0x0F;
                 const binary = ((hmac[offset] & 0x7F) << 24) |
                                ((hmac[offset + 1] & 0xFF) << 16) |
                                ((hmac[offset + 2] & 0xFF) << 8) |
                                (hmac[offset + 3] & 0xFF);
                 
-                // Generate 6-digit code
                 const otp = binary % 1000000;
                 return otp.toString().padStart(6, '0');
             } catch (error) {
@@ -502,7 +488,7 @@
                             </h1>
                             
                             <p className="text-gray-400 text-lg mb-8 max-w-lg leading-relaxed">
-                                7 Professional Video Lessons • Sinhala Medium • Lifetime Access • 
+                                Professional Video Lessons • Sinhala Medium • Lifetime Access • 
                                 Certificate Included • Rs. 9,500 Only
                             </p>
                             
@@ -525,7 +511,7 @@
                                 </div>
                                 <div className="w-px h-12 bg-gray-700"></div>
                                 <div>
-                                    <div className="text-3xl font-bold text-white">7</div>
+                                    <div className="text-3xl font-bold text-white">13+</div>
                                     <div className="text-gray-500 text-sm">Video Lessons</div>
                                 </div>
                             </div>
@@ -569,11 +555,7 @@
         const Registration = ({ onSuccess }) => {
             const [step, setStep] = useState(1);
             const [formData, setFormData] = useState({
-                name: '',
-                email: '',
-                phone: '',
-                password: '',
-                otp: ''
+                name: '', email: '', phone: '', password: '', otp: ''
             });
             const [error, setError] = useState('');
             const [isVerifying, setIsVerifying] = useState(false);
@@ -582,41 +564,27 @@
                 setError('');
                 if (step === 1) {
                     if (!formData.name || !formData.email || !formData.phone || !formData.password) {
-                        setError('All fields are required');
-                        return false;
+                        setError('All fields are required'); return false;
                     }
                     if (formData.password.length < 6) {
-                        setError('Password must be at least 6 characters');
-                        return false;
+                        setError('Password must be at least 6 characters'); return false;
                     }
-                    
-                    // Check if email or phone already exists
                     const users = JSON.parse(localStorage.getItem('aura_users') || '[]');
-                    const emailExists = users.find(u => u.email === formData.email);
-                    const phoneExists = users.find(u => u.phone === formData.phone);
-                    
-                    if (emailExists) {
-                        setError('This email is already registered');
-                        return false;
+                    if (users.find(u => u.email === formData.email)) {
+                        setError('This email is already registered'); return false;
                     }
-                    if (phoneExists) {
-                        setError('This phone number is already registered');
-                        return false;
+                    if (users.find(u => u.phone === formData.phone)) {
+                        setError('This phone number is already registered'); return false;
                     }
-                    
                 } else if (step === 2) {
                     if (!formData.otp || formData.otp.length !== 6) {
-                        setError('Please enter 6-digit verification code');
-                        return false;
+                        setError('Please enter 6-digit verification code'); return false;
                     }
-                    
                     setIsVerifying(true);
                     const expectedOTP = await generateTOTP(FIXED_SECRET_KEY);
                     setIsVerifying(false);
-                    
                     if (formData.otp !== expectedOTP) {
-                        setError('Invalid verification code. Please try again.');
-                        return false;
+                        setError('Invalid verification code. Please try again.'); return false;
                     }
                 }
                 return true;
@@ -630,26 +598,19 @@
                     } else {
                         const deviceId = 'device_' + Math.random().toString(36).substr(2, 9);
                         const userData = {
-                            name: formData.name,
-                            email: formData.email,
-                            phone: formData.phone,
-                            password: formData.password,
-                            deviceId: deviceId,
-                            registeredAt: new Date().toISOString(),
-                            profilePicture: null
+                            name: formData.name, email: formData.email, phone: formData.phone,
+                            password: formData.password, deviceId: deviceId,
+                            registeredAt: new Date().toISOString(), profilePicture: null
                         };
-                        
                         const users = JSON.parse(localStorage.getItem('aura_users') || '[]');
                         users.push(userData);
                         localStorage.setItem('aura_users', JSON.stringify(users));
                         
-                        // Store device binding
                         const deviceBindings = JSON.parse(localStorage.getItem('aura_device_bindings') || '{}');
                         deviceBindings[formData.email] = deviceId;
                         localStorage.setItem('aura_device_bindings', JSON.stringify(deviceBindings));
                         
                         sendWhatsAppNotification(userData);
-                        
                         onSuccess(userData);
                     }
                 }
@@ -670,134 +631,44 @@
                         </div>
                         
                         {error && (
-                            <motion.div 
-                                initial={{ opacity: 0, y: -10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-xl text-red-400 text-sm flex items-center gap-2"
-                            >
-                                <Icon name="alert-circle" size={16} />
-                                {error}
+                            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-xl text-red-400 text-sm flex items-center gap-2">
+                                <Icon name="alert-circle" size={16} />{error}
                             </motion.div>
                         )}
                         
                         <div className="space-y-4">
                             {step === 1 && (
                                 <>
-                                    <div>
-                                        <label className="block text-gray-400 text-sm mb-2">Full Name *</label>
-                                        <input 
-                                            type="text" 
-                                            className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:border-indigo-500 focus:outline-none transition-colors"
-                                            placeholder="John Doe"
-                                            value={formData.name}
-                                            onChange={(e) => setFormData({...formData, name: e.target.value})}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-gray-400 text-sm mb-2">Email *</label>
-                                        <input 
-                                            type="email" 
-                                            className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:border-indigo-500 focus:outline-none transition-colors"
-                                            placeholder="your@email.com"
-                                            value={formData.email}
-                                            onChange={(e) => setFormData({...formData, email: e.target.value})}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-gray-400 text-sm mb-2">Phone *</label>
-                                        <input 
-                                            type="tel" 
-                                            className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:border-indigo-500 focus:outline-none transition-colors"
-                                            placeholder="07X XXX XXXX"
-                                            value={formData.phone}
-                                            onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-gray-400 text-sm mb-2">Password *</label>
-                                        <input 
-                                            type="password" 
-                                            className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:border-indigo-500 focus:outline-none transition-colors"
-                                            placeholder="••••••••"
-                                            value={formData.password}
-                                            onChange={(e) => setFormData({...formData, password: e.target.value})}
-                                        />
-                                    </div>
+                                    <div><label className="block text-gray-400 text-sm mb-2">Full Name *</label><input type="text" className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:border-indigo-500 focus:outline-none" placeholder="John Doe" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} /></div>
+                                    <div><label className="block text-gray-400 text-sm mb-2">Email *</label><input type="email" className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:border-indigo-500 focus:outline-none" placeholder="your@email.com" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} /></div>
+                                    <div><label className="block text-gray-400 text-sm mb-2">Phone *</label><input type="tel" className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:border-indigo-500 focus:outline-none" placeholder="07X XXX XXXX" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} /></div>
+                                    <div><label className="block text-gray-400 text-sm mb-2">Password *</label><input type="password" className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:border-indigo-500 focus:outline-none" placeholder="••••••••" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} /></div>
                                     
                                     <div className="p-4 rounded-xl bg-gradient-to-br from-indigo-900/30 to-purple-900/30 border border-indigo-500/20 mt-6">
-                                        <div className="text-white font-semibold mb-3 flex items-center gap-2">
-                                            <Icon name="credit-card" size={18} />
-                                            Payment Details
-                                        </div>
+                                        <div className="text-white font-semibold mb-3 flex items-center gap-2"><Icon name="credit-card" size={18} /> Payment Details</div>
                                         <div className="text-gray-300 text-sm space-y-2">
-                                            <div className="flex justify-between">
-                                                <span>Course Fee:</span>
-                                                <span className="text-white font-semibold">Rs. 9,500.00</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span>Bank:</span>
-                                                <span className="text-white">Commercial Bank</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span>Account:</span>
-                                                <span className="text-white font-mono">1234567890</span>
-                                            </div>
+                                            <div className="flex justify-between"><span>Course Fee:</span><span className="text-white font-semibold">Rs. 9,500.00</span></div>
+                                            <div className="flex justify-between"><span>Bank:</span><span className="text-white">Commercial Bank</span></div>
+                                            <div className="flex justify-between"><span>Account:</span><span className="text-white font-mono">1234567890</span></div>
                                         </div>
-                                        <p className="text-yellow-400 text-xs mt-3 flex items-start gap-2">
-                                            <Icon name="alert-triangle" size={14} />
-                                            Please make payment before continuing. Admin will verify and activate your account.
-                                        </p>
                                     </div>
                                 </>
                             )}
-                            
                             {step === 2 && (
                                 <>
                                     <div className="text-center mb-6">
-                                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-500/20 mb-4">
-                                            <Icon name="shield" size={32} className="text-indigo-400" />
-                                        </div>
+                                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-500/20 mb-4"><Icon name="shield" size={32} className="text-indigo-400" /></div>
                                         <h3 className="text-white font-semibold mb-2">Security Verification</h3>
                                         <p className="text-gray-400 text-sm">Enter 6-digit verification code</p>
                                     </div>
-                                    
-                                    <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 mb-4">
-                                        <p className="text-blue-400 text-sm text-center">
-                                            Enter the verification code sent to your device
-                                        </p>
-                                    </div>
-                                    
                                     <div className="mb-4">
-                                        <label className="block text-gray-400 text-sm mb-2">Verification Code</label>
-                                        <input 
-                                            type="text" 
-                                            className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:border-indigo-500 focus:outline-none transition-colors text-center text-2xl tracking-[0.5em] font-mono"
-                                            placeholder="000000"
-                                            maxLength="6"
-                                            value={formData.otp}
-                                            onChange={(e) => setFormData({...formData, otp: e.target.value.replace(/\D/g, '')})}
-                                            autoFocus
-                                        />
+                                        <input type="text" className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:border-indigo-500 focus:outline-none text-center text-2xl tracking-[0.5em] font-mono" placeholder="000000" maxLength="6" value={formData.otp} onChange={(e) => setFormData({...formData, otp: e.target.value.replace(/\D/g, '')})} autoFocus />
                                     </div>
                                 </>
                             )}
-                            
                             <div className="flex gap-3 pt-4">
-                                {step > 1 && (
-                                    <button 
-                                        type="button"
-                                        onClick={() => setStep(step - 1)}
-                                        className="flex-1 py-3 glass text-white rounded-xl font-medium hover:bg-white/10 transition-all"
-                                    >
-                                        Back
-                                    </button>
-                                )}
-                                <button 
-                                    type="button"
-                                    onClick={handleNext}
-                                    disabled={isVerifying}
-                                    className="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-indigo-500/25 transition-all disabled:opacity-50"
-                                >
+                                {step > 1 && <button type="button" onClick={() => setStep(step - 1)} className="flex-1 py-3 glass text-white rounded-xl font-medium hover:bg-white/10 transition-all">Back</button>}
+                                <button type="button" onClick={handleNext} disabled={isVerifying} className="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-indigo-500/25 transition-all disabled:opacity-50">
                                     {isVerifying ? 'Verifying...' : (step === 2 ? 'Complete Registration' : 'Continue')}
                                 </button>
                             </div>
@@ -814,42 +685,18 @@
             const [isLoading, setIsLoading] = useState(false);
             
             const handleLogin = async (e) => {
-                e.preventDefault();
-                setError('');
-                setIsLoading(true);
-                
+                e.preventDefault(); setError(''); setIsLoading(true);
                 const users = JSON.parse(localStorage.getItem('aura_users') || '[]');
                 const user = users.find(u => u.email === formData.email);
                 
-                if (!user) {
-                    setError('Email not registered');
-                    setIsLoading(false);
-                    return;
-                }
+                if (!user) { setError('Email not registered'); setIsLoading(false); return; }
+                if (user.password !== formData.password) { setError('Invalid password'); setIsLoading(false); return; }
                 
-                if (user.password !== formData.password) {
-                    setError('Invalid password');
-                    setIsLoading(false);
-                    return;
-                }
-                
-                // Check device binding
                 const deviceBindings = JSON.parse(localStorage.getItem('aura_device_bindings') || '{}');
-                const currentDevice = 'device_' + Math.random().toString(36).substr(2, 9);
-                const savedDevice = deviceBindings[formData.email];
-                
-                if (savedDevice && savedDevice !== currentDevice) {
-                    // In real implementation, this would check actual device fingerprint
-                    // For demo, we'll allow but show warning
-                    console.log('New device detected');
-                }
-                
-                // Update device binding
-                deviceBindings[formData.email] = currentDevice;
+                deviceBindings[formData.email] = 'device_' + Math.random().toString(36).substr(2, 9);
                 localStorage.setItem('aura_device_bindings', JSON.stringify(deviceBindings));
                 
-                setIsLoading(false);
-                onSuccess(user);
+                setIsLoading(false); onSuccess(user);
             };
             
             return (
@@ -859,49 +706,11 @@
                             <h2 className="text-2xl font-bold text-white mb-2">Welcome Back</h2>
                             <p className="text-gray-400 text-sm">Login to your account</p>
                         </div>
-                        
-                        {error && (
-                            <motion.div 
-                                initial={{ opacity: 0, y: -10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-xl text-red-400 text-sm flex items-center gap-2"
-                            >
-                                <Icon name="alert-circle" size={16} />
-                                {error}
-                            </motion.div>
-                        )}
-                        
+                        {error && <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-xl text-red-400 text-sm flex items-center gap-2"><Icon name="alert-circle" size={16} />{error}</motion.div>}
                         <form onSubmit={handleLogin} className="space-y-4">
-                            <div>
-                                <label className="block text-gray-400 text-sm mb-2">Email</label>
-                                <input 
-                                    type="email" 
-                                    className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:border-indigo-500 focus:outline-none transition-colors"
-                                    placeholder="your@email.com"
-                                    value={formData.email}
-                                    onChange={(e) => setFormData({...formData, email: e.target.value})}
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-gray-400 text-sm mb-2">Password</label>
-                                <input 
-                                    type="password" 
-                                    className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:border-indigo-500 focus:outline-none transition-colors"
-                                    placeholder="••••••••"
-                                    value={formData.password}
-                                    onChange={(e) => setFormData({...formData, password: e.target.value})}
-                                    required
-                                />
-                            </div>
-                            
-                            <button 
-                                type="submit"
-                                disabled={isLoading}
-                                className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-indigo-500/25 transition-all mt-6 disabled:opacity-50"
-                            >
-                                {isLoading ? 'Logging in...' : 'Login'}
-                            </button>
+                            <div><label className="block text-gray-400 text-sm mb-2">Email</label><input type="email" className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:border-indigo-500 focus:outline-none" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} required /></div>
+                            <div><label className="block text-gray-400 text-sm mb-2">Password</label><input type="password" className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:border-indigo-500 focus:outline-none" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} required /></div>
+                            <button type="submit" disabled={isLoading} className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg transition-all mt-6 disabled:opacity-50">{isLoading ? 'Logging in...' : 'Login'}</button>
                         </form>
                     </div>
                 </div>
@@ -912,35 +721,26 @@
         const Profile = ({ onLogout }) => {
             const { user, updateUser } = useContext(AuthContext);
             const [isEditing, setIsEditing] = useState(false);
-            const [formData, setFormData] = useState({
-                name: user?.name || '',
-                phone: user?.phone || ''
-            });
+            const [formData, setFormData] = useState({ name: user?.name || '', phone: user?.phone || '' });
             const [previewImage, setPreviewImage] = useState(user?.profilePicture || null);
             
             const handleImageChange = (e) => {
                 const file = e.target.files[0];
                 if (file) {
                     const reader = new FileReader();
-                    reader.onloadend = () => {
-                        setPreviewImage(reader.result);
-                    };
+                    reader.onloadend = () => setPreviewImage(reader.result);
                     reader.readAsDataURL(file);
                 }
             };
             
             const handleSave = () => {
                 const updatedUser = { ...user, ...formData, profilePicture: previewImage };
-                
-                // Update in users array
                 const users = JSON.parse(localStorage.getItem('aura_users') || '[]');
                 const userIndex = users.findIndex(u => u.email === user.email);
                 if (userIndex !== -1) {
                     users[userIndex] = updatedUser;
                     localStorage.setItem('aura_users', JSON.stringify(users));
                 }
-                
-                // Update current user
                 localStorage.setItem('aura_current_user', JSON.stringify(updatedUser));
                 updateUser(updatedUser);
                 setIsEditing(false);
@@ -949,20 +749,12 @@
             return (
                 <div className="min-h-screen pt-24 pb-12 px-4">
                     <div className="max-w-2xl mx-auto">
-                        <motion.div 
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="glass-strong rounded-3xl p-8"
-                        >
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-strong rounded-3xl p-8">
                             <div className="text-center mb-8">
                                 <div className="relative inline-block">
                                     <div className="w-32 h-32 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 p-1 mx-auto">
                                         <div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center overflow-hidden">
-                                            {previewImage ? (
-                                                <img src={previewImage} alt="Profile" className="w-full h-full object-cover" />
-                                            ) : (
-                                                <span className="text-4xl font-bold text-white">{user?.name?.[0] || 'U'}</span>
-                                            )}
+                                            {previewImage ? <img src={previewImage} alt="Profile" className="w-full h-full object-cover" /> : <span className="text-4xl font-bold text-white">{user?.name?.[0] || 'U'}</span>}
                                         </div>
                                     </div>
                                     {isEditing && (
@@ -977,80 +769,16 @@
                             </div>
                             
                             <div className="space-y-4">
-                                <div>
-                                    <label className="block text-gray-400 text-sm mb-2">Full Name</label>
-                                    {isEditing ? (
-                                        <input 
-                                            type="text" 
-                                            className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:border-indigo-500 focus:outline-none transition-colors"
-                                            value={formData.name}
-                                            onChange={(e) => setFormData({...formData, name: e.target.value})}
-                                        />
-                                    ) : (
-                                        <div className="px-4 py-3 rounded-xl bg-gray-800/30 text-white">{user?.name}</div>
-                                    )}
-                                </div>
-                                
-                                <div>
-                                    <label className="block text-gray-400 text-sm mb-2">Email</label>
-                                    <div className="px-4 py-3 rounded-xl bg-gray-800/30 text-gray-400">{user?.email}</div>
-                                </div>
-                                
-                                <div>
-                                    <label className="block text-gray-400 text-sm mb-2">Phone</label>
-                                    {isEditing ? (
-                                        <input 
-                                            type="tel" 
-                                            className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:border-indigo-500 focus:outline-none transition-colors"
-                                            value={formData.phone}
-                                            onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                                        />
-                                    ) : (
-                                        <div className="px-4 py-3 rounded-xl bg-gray-800/30 text-white">{user?.phone}</div>
-                                    )}
-                                </div>
-                                
-                                <div>
-                                    <label className="block text-gray-400 text-sm mb-2">Member Since</label>
-                                    <div className="px-4 py-3 rounded-xl bg-gray-800/30 text-gray-400">
-                                        {user?.registeredAt ? new Date(user.registeredAt).toLocaleDateString() : 'N/A'}
-                                    </div>
-                                </div>
+                                <div><label className="block text-gray-400 text-sm mb-2">Full Name</label>{isEditing ? <input type="text" className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} /> : <div className="px-4 py-3 rounded-xl bg-gray-800/30 text-white">{user?.name}</div>}</div>
+                                <div><label className="block text-gray-400 text-sm mb-2">Email</label><div className="px-4 py-3 rounded-xl bg-gray-800/30 text-gray-400">{user?.email}</div></div>
+                                <div><label className="block text-gray-400 text-sm mb-2">Phone</label>{isEditing ? <input type="tel" className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} /> : <div className="px-4 py-3 rounded-xl bg-gray-800/30 text-white">{user?.phone}</div>}</div>
                             </div>
                             
                             <div className="flex gap-3 mt-8">
                                 {isEditing ? (
-                                    <>
-                                        <button 
-                                            onClick={() => setIsEditing(false)}
-                                            className="flex-1 py-3 glass text-white rounded-xl font-medium hover:bg-white/10 transition-all"
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button 
-                                            onClick={handleSave}
-                                            className="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg transition-all"
-                                        >
-                                            Save Changes
-                                        </button>
-                                    </>
+                                    <><button onClick={() => setIsEditing(false)} className="flex-1 py-3 glass text-white rounded-xl font-medium">Cancel</button><button onClick={handleSave} className="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium">Save Changes</button></>
                                 ) : (
-                                    <>
-                                        <button 
-                                            onClick={() => setIsEditing(true)}
-                                            className="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2"
-                                        >
-                                            <Icon name="edit" size={18} />
-                                            Edit Profile
-                                        </button>
-                                        <button 
-                                            onClick={onLogout}
-                                            className="flex-1 py-3 border border-red-500/30 text-red-400 rounded-xl font-medium hover:bg-red-500/10 transition-all flex items-center justify-center gap-2"
-                                        >
-                                            <Icon name="log-out" size={18} />
-                                            Logout
-                                        </button>
-                                    </>
+                                    <><button onClick={() => setIsEditing(true)} className="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium flex items-center justify-center gap-2"><Icon name="edit" size={18} /> Edit Profile</button><button onClick={onLogout} className="flex-1 py-3 border border-red-500/30 text-red-400 rounded-xl font-medium flex items-center justify-center gap-2"><Icon name="log-out" size={18} /> Logout</button></>
                                 )}
                             </div>
                         </motion.div>
@@ -1062,21 +790,12 @@
         // Auth Page
         const AuthPage = ({ onLogin }) => {
             const [isLogin, setIsLogin] = useState(true);
-            
             return (
                 <div className="min-h-screen flex items-center justify-center pt-20 px-4 pb-12">
                     <div className="w-full">
-                        {isLogin ? (
-                            <Login onSuccess={onLogin} />
-                        ) : (
-                            <Registration onSuccess={onLogin} />
-                        )}
-                        
+                        {isLogin ? <Login onSuccess={onLogin} /> : <Registration onSuccess={onLogin} />}
                         <div className="text-center mt-6">
-                            <button 
-                                onClick={() => setIsLogin(!isLogin)}
-                                className="text-gray-400 text-sm hover:text-white transition-colors"
-                            >
+                            <button onClick={() => setIsLogin(!isLogin)} className="text-gray-400 text-sm hover:text-white transition-colors">
                                 {isLogin ? "Don't have an account? Register" : "Already have an account? Login"}
                             </button>
                         </div>
@@ -1093,113 +812,48 @@
             const [completedLessons, setCompletedLessons] = useState([]);
             const [videoProgress, setVideoProgress] = useState(0);
             const [watching, setWatching] = useState(false);
+            const [moduleError, setModuleError] = useState(''); // NEW: State for error message
             
-            // Course modules with Google Drive video links and thumbnails - ONLY FIRST 7 LESSONS
             const modules = [
                 { 
                     title: 'AI Foundations - Basic Lessons', 
                     lessons: [
-                        { 
-                            id: 1, 
-                            title: 'AI හැදින්විම (Introduction to AI)', 
-                            duration: '15:00', 
-                            videoUrl: 'https://drive.google.com/file/d/1GZ-h7SIAG5bOIavwLng1Sh1N2BdUmIW6/preview',
-                            thumbnail: 'https://drive.google.com/thumbnail?id=1GZ-h7SIAG5bOIavwLng1Sh1N2BdUmIW6&sz=w1000'
-                        },
-                        { 
-                            id: 2, 
-                            title: 'Lesson 1 - AI Basics', 
-                            duration: '12:30', 
-                            videoUrl: 'https://drive.google.com/file/d/10-4GWQ_FAcUNrdnC3zqtOnGXSmsX2Y2R/preview',
-                            thumbnail: 'https://drive.google.com/thumbnail?id=10-4GWQ_FAcUNrdnC3zqtOnGXSmsX2Y2R&sz=w1000'
-                        },
-                        { 
-                            id: 3, 
-                            title: 'Lesson 2 - Getting Started', 
-                            duration: '18:45', 
-                            videoUrl: 'https://drive.google.com/file/d/1uHMAdhZJSqwYar8XYV_NrUQcbA0i6g6-/preview',
-                            thumbnail: 'https://drive.google.com/thumbnail?id=1uHMAdhZJSqwYar8XYV_NrUQcbA0i6g6-&sz=w1000'
-                        },
-                        { 
-                            id: 4, 
-                            title: 'Lesson 3 - Core Concepts', 
-                            duration: '20:00', 
-                            videoUrl: 'https://drive.google.com/file/d/1nQdUC8NrFpd-GiTgvSmYpsdVDK6r3lJy/preview',
-                            thumbnail: 'https://drive.google.com/thumbnail?id=1nQdUC8NrFpd-GiTgvSmYpsdVDK6r3lJy&sz=w1000'
-                        },
-                        { 
-                            id: 5, 
-                            title: 'Lesson 4 - Practical Applications', 
-                            duration: '22:15', 
-                            videoUrl: 'https://drive.google.com/file/d/10hgirQhLVu5IoalRBLnIW7CMyl9vQiy_/preview',
-                            thumbnail: 'https://drive.google.com/thumbnail?id=10hgirQhLVu5IoalRBLnIW7CMyl9vQiy_&sz=w1000'
-                        },
-                        { 
-                            id: 6, 
-                            title: 'Lesson 5 - Advanced Techniques', 
-                            duration: '25:00', 
-                            videoUrl: 'https://drive.google.com/file/d/1HXyLn9wDiGiLCelEXr0jipPIcQ5EjfMC/preview',
-                            thumbnail: 'https://drive.google.com/thumbnail?id=1HXyLn9wDiGiLCelEXr0jipPIcQ5EjfMC&sz=w1000'
-                        },
-                        { 
-                            id: 7, 
-                            title: 'Lesson 6 - Final Project Setup', 
-                            duration: '16:30', 
-                            videoUrl: 'https://drive.google.com/file/d/1kswDC7oT5YV9SfqdBlmARDJj6_eiyJzD/preview',
-                            thumbnail: 'https://drive.google.com/thumbnail?id=1kswDC7oT5YV9SfqdBlmARDJj6_eiyJzD&sz=w1000'
-                        }
+                        { id: 1, title: 'AI හැදින්විම (Introduction to AI)', duration: '15:00', videoUrl: 'https://drive.google.com/file/d/1GZ-h7SIAG5bOIavwLng1Sh1N2BdUmIW6/preview', thumbnail: 'https://drive.google.com/thumbnail?id=1GZ-h7SIAG5bOIavwLng1Sh1N2BdUmIW6&sz=w1000' },
+                        { id: 2, title: 'Lesson 1 - AI Basics', duration: '12:30', videoUrl: 'https://drive.google.com/file/d/10-4GWQ_FAcUNrdnC3zqtOnGXSmsX2Y2R/preview', thumbnail: 'https://drive.google.com/thumbnail?id=10-4GWQ_FAcUNrdnC3zqtOnGXSmsX2Y2R&sz=w1000' },
+                        { id: 3, title: 'Lesson 2 - Getting Started', duration: '18:45', videoUrl: 'https://drive.google.com/file/d/1uHMAdhZJSqwYar8XYV_NrUQcbA0i6g6-/preview', thumbnail: 'https://drive.google.com/thumbnail?id=1uHMAdhZJSqwYar8XYV_NrUQcbA0i6g6-&sz=w1000' },
+                        { id: 4, title: 'Lesson 3 - Core Concepts', duration: '20:00', videoUrl: 'https://drive.google.com/file/d/1nQdUC8NrFpd-GiTgvSmYpsdVDK6r3lJy/preview', thumbnail: 'https://drive.google.com/thumbnail?id=1nQdUC8NrFpd-GiTgvSmYpsdVDK6r3lJy&sz=w1000' },
+                        { id: 5, title: 'Lesson 4 - Practical Applications', duration: '22:15', videoUrl: 'https://drive.google.com/file/d/10hgirQhLVu5IoalRBLnIW7CMyl9vQiy_/preview', thumbnail: 'https://drive.google.com/thumbnail?id=10hgirQhLVu5IoalRBLnIW7CMyl9vQiy_&sz=w1000' },
+                        { id: 6, title: 'Lesson 5 - Advanced Techniques', duration: '25:00', videoUrl: 'https://drive.google.com/file/d/1HXyLn9wDiGiLCelEXr0jipPIcQ5EjfMC/preview', thumbnail: 'https://drive.google.com/thumbnail?id=1HXyLn9wDiGiLCelEXr0jipPIcQ5EjfMC&sz=w1000' },
+                        { id: 7, title: 'Lesson 6 - Final Project Setup', duration: '16:30', videoUrl: 'https://drive.google.com/file/d/1kswDC7oT5YV9SfqdBlmARDJj6_eiyJzD/preview', thumbnail: 'https://drive.google.com/thumbnail?id=1kswDC7oT5YV9SfqdBlmARDJj6_eiyJzD&sz=w1000' }
                     ]
                 },
                 {
                     title: 'Founder Mastery Course',
-                    requiresCompletion: 7, // Requires Lesson 7 to be completed
+                    requiresCompletion: 7, 
                     lessons: [
-                        { 
-                            id: 8, 
-                            title: 'Founder Mastery - Lesson 1', 
-                            duration: '20:00', 
-                            videoUrl: 'https://drive.google.com/file/d/1LmDbGoHxZOlRLnShNKXxyjy0aI0g4UA8/preview',
-                            thumbnail: 'https://drive.google.com/thumbnail?id=1LmDbGoHxZOlRLnShNKXxyjy0aI0g4UA8&sz=w1000'
-                        },
-                        { 
-                            id: 9, 
-                            title: 'Founder Mastery - Lesson 2', 
-                            duration: '20:00', 
-                            videoUrl: 'https://drive.google.com/file/d/1SBag6taDaltJOhJXfTrAAuqsk5Dq60zu/preview',
-                            thumbnail: 'https://drive.google.com/thumbnail?id=1SBag6taDaltJOhJXfTrAAuqsk5Dq60zu&sz=w1000'
-                        },
-                        { 
-                            id: 10, 
-                            title: 'Founder Mastery - Lesson 3', 
-                            duration: '20:00', 
-                            videoUrl: 'https://drive.google.com/file/d/1scvSqL8t2OjPLXTBWJPSEyxPjKjvwQ65/preview',
-                            thumbnail: 'https://drive.google.com/thumbnail?id=1scvSqL8t2OjPLXTBWJPSEyxPjKjvwQ65&sz=w1000'
-                        },
-                        { 
-                            id: 11, 
-                            title: 'Founder Mastery - Lesson 4', 
-                            duration: '20:00', 
-                            videoUrl: 'https://drive.google.com/file/d/1ErUKP4NjFbUk2q2NyTCHJsf8whOm2YEt/preview',
-                            thumbnail: 'https://drive.google.com/thumbnail?id=1ErUKP4NjFbUk2q2NyTCHJsf8whOm2YEt&sz=w1000'
-                        },
-                        { 
-                            id: 12, 
-                            title: 'Founder Mastery - Lesson 5', 
-                            duration: '20:00', 
-                            videoUrl: 'https://drive.google.com/file/d/15qs0O0vPuCiLbaNU0gTIfyNHaqce8D7q/preview',
-                            thumbnail: 'https://drive.google.com/thumbnail?id=15qs0O0vPuCiLbaNU0gTIfyNHaqce8D7q&sz=w1000'
-                        },
-                        { 
-                            id: 13, 
-                            title: 'Founder Mastery - Lesson 6', 
-                            duration: '20:00', 
-                            videoUrl: 'https://drive.google.com/file/d/18mSOecPmCVjpXaxHtQyPC24nwR57prmX/preview',
-                            thumbnail: 'https://drive.google.com/thumbnail?id=18mSOecPmCVjpXaxHtQyPC24nwR57prmX&sz=w1000'
-                        }
+                        { id: 8, title: 'Founder Mastery - Lesson 1', duration: '20:00', videoUrl: 'https://drive.google.com/file/d/1LmDbGoHxZOlRLnShNKXxyjy0aI0g4UA8/preview', thumbnail: 'https://drive.google.com/thumbnail?id=1LmDbGoHxZOlRLnShNKXxyjy0aI0g4UA8&sz=w1000' },
+                        { id: 9, title: 'Founder Mastery - Lesson 2', duration: '20:00', videoUrl: 'https://drive.google.com/file/d/1SBag6taDaltJOhJXfTrAAuqsk5Dq60zu/preview', thumbnail: 'https://drive.google.com/thumbnail?id=1SBag6taDaltJOhJXfTrAAuqsk5Dq60zu&sz=w1000' },
+                        { id: 10, title: 'Founder Mastery - Lesson 3', duration: '20:00', videoUrl: 'https://drive.google.com/file/d/1scvSqL8t2OjPLXTBWJPSEyxPjKjvwQ65/preview', thumbnail: 'https://drive.google.com/thumbnail?id=1scvSqL8t2OjPLXTBWJPSEyxPjKjvwQ65&sz=w1000' },
+                        { id: 11, title: 'Founder Mastery - Lesson 4', duration: '20:00', videoUrl: 'https://drive.google.com/file/d/1ErUKP4NjFbUk2q2NyTCHJsf8whOm2YEt/preview', thumbnail: 'https://drive.google.com/thumbnail?id=1ErUKP4NjFbUk2q2NyTCHJsf8whOm2YEt&sz=w1000' },
+                        { id: 12, title: 'Founder Mastery - Lesson 5', duration: '20:00', videoUrl: 'https://drive.google.com/file/d/15qs0O0vPuCiLbaNU0gTIfyNHaqce8D7q/preview', thumbnail: 'https://drive.google.com/thumbnail?id=15qs0O0vPuCiLbaNU0gTIfyNHaqce8D7q&sz=w1000' },
+                        { id: 13, title: 'Founder Mastery - Lesson 6', duration: '20:00', videoUrl: 'https://drive.google.com/file/d/18mSOecPmCVjpXaxHtQyPC24nwR57prmX/preview', thumbnail: 'https://drive.google.com/thumbnail?id=18mSOecPmCVjpXaxHtQyPC24nwR57prmX&sz=w1000' }
                     ]
                 }
             ];
             
+            // NEW: Handle clicking on a course module (Lock checking)
+            const handleModuleClick = (idx, module) => {
+                // Check if the module has a prerequisite that is not met
+                if (module.requiresCompletion && !completedLessons.includes(module.requiresCompletion)) {
+                    setModuleError('කරුණාකරලා AI Foundations - Basic Lessons ඔක්කොම බලලා ඉන්න');
+                    setTimeout(() => setModuleError(''), 4000); // Hide error after 4 seconds
+                    return; // Stop them from opening the module
+                }
+                
+                setActiveModule(idx);
+                setModuleError(''); // Clear any previous errors
+            };
+
             const handleLessonClick = (lesson, index) => {
                 const prevLesson = modules[activeModule].lessons[index - 1];
                 const isLocked = index > 0 && !completedLessons.includes(prevLesson?.id);
@@ -1214,12 +868,28 @@
                 setWatching(false);
             };
             
+            // MODIFIED: Handle auto-advancing to next module
             const handleVideoComplete = () => {
-                if (activeLesson && !completedLessons.includes(activeLesson.id)) {
-                    setCompletedLessons([...completedLessons, activeLesson.id]);
+                let currentCompleted = [...completedLessons];
+                
+                if (activeLesson && !currentCompleted.includes(activeLesson.id)) {
+                    currentCompleted.push(activeLesson.id);
+                    setCompletedLessons(currentCompleted);
                 }
                 setWatching(false);
                 setVideoProgress(100);
+
+                // Check if we just completed the LAST lesson of the CURRENT module
+                const currentModuleObj = modules[activeModule];
+                const isLastLesson = activeLesson?.id === currentModuleObj.lessons[currentModuleObj.lessons.length - 1].id;
+
+                if (isLastLesson && activeModule < modules.length - 1) {
+                    // Auto-switch to the next module
+                    const nextModuleIdx = activeModule + 1;
+                    setActiveModule(nextModuleIdx);
+                    // Auto-select the first lesson of the next module so it doesn't go blank
+                    setActiveLesson(modules[nextModuleIdx].lessons[0]);
+                }
             };
             
             const totalLessons = modules.reduce((acc, m) => acc + m.lessons.length, 0);
@@ -1230,19 +900,11 @@
                     <div className="max-w-7xl mx-auto">
                         <div className="grid lg:grid-cols-3 gap-8">
                             <div className="lg:col-span-1 space-y-6">
-                                <motion.div 
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    className="glass-strong rounded-2xl p-6"
-                                >
+                                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="glass-strong rounded-2xl p-6">
                                     <div className="flex items-center gap-4 mb-6">
                                         <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 p-0.5">
                                             <div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center overflow-hidden">
-                                                {user?.profilePicture ? (
-                                                    <img src={user.profilePicture} alt="Profile" className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <span className="text-2xl font-bold text-white">{user?.name?.[0] || 'U'}</span>
-                                                )}
+                                                {user?.profilePicture ? <img src={user.profilePicture} alt="Profile" className="w-full h-full object-cover" /> : <span className="text-2xl font-bold text-white">{user?.name?.[0] || 'U'}</span>}
                                             </div>
                                         </div>
                                         <div className="flex-1">
@@ -1250,7 +912,6 @@
                                             <p className="text-gray-400 text-sm">{user?.email}</p>
                                         </div>
                                     </div>
-                                    
                                     <div className="space-y-4">
                                         <div>
                                             <div className="flex justify-between text-sm mb-2">
@@ -1258,46 +919,40 @@
                                                 <span className="text-white font-semibold">{overallProgress}%</span>
                                             </div>
                                             <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
-                                                <div 
-                                                    className="h-full video-progress rounded-full transition-all duration-500"
-                                                    style={{ width: `${overallProgress}%` }}
-                                                ></div>
+                                                <div className="h-full video-progress rounded-full transition-all duration-500" style={{ width: `${overallProgress}%` }}></div>
                                             </div>
                                         </div>
-                                        
                                         <div className="grid grid-cols-2 gap-4 pt-4">
-                                            <div className="glass p-3 rounded-xl text-center">
-                                                <div className="text-2xl font-bold text-white">{completedLessons.length}</div>
-                                                <div className="text-gray-400 text-xs">Completed</div>
-                                            </div>
-                                            <div className="glass p-3 rounded-xl text-center">
-                                                <div className="text-2xl font-bold text-white">{totalLessons - completedLessons.length}</div>
-                                                <div className="text-gray-400 text-xs">Remaining</div>
-                                            </div>
+                                            <div className="glass p-3 rounded-xl text-center"><div className="text-2xl font-bold text-white">{completedLessons.length}</div><div className="text-gray-400 text-xs">Completed</div></div>
+                                            <div className="glass p-3 rounded-xl text-center"><div className="text-2xl font-bold text-white">{totalLessons - completedLessons.length}</div><div className="text-gray-400 text-xs">Remaining</div></div>
                                         </div>
-                                        
-                                        <button 
-                                            onClick={onLogout}
-                                            className="w-full py-2 mt-4 border border-red-500/30 text-red-400 rounded-xl text-sm font-medium hover:bg-red-500/10 transition-all flex items-center justify-center gap-2"
-                                        >
-                                            <Icon name="log-out" size={16} />
-                                            Logout
-                                        </button>
+                                        <button onClick={onLogout} className="w-full py-2 mt-4 border border-red-500/30 text-red-400 rounded-xl text-sm font-medium hover:bg-red-500/10 transition-all flex items-center justify-center gap-2"><Icon name="log-out" size={16} />Logout</button>
                                     </div>
                                 </motion.div>
                                 
-                                <motion.div 
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 0.1 }}
-                                    className="glass rounded-2xl p-4 max-h-[500px] overflow-y-auto scrollbar-hide"
-                                >
+                                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }} className="glass rounded-2xl p-4 max-h-[500px] overflow-y-auto scrollbar-hide">
                                     <h4 className="text-white font-semibold mb-4 px-2">Course Modules</h4>
+                                    
+                                    {/* NEW: Error message display area */}
+                                    <AnimatePresence>
+                                        {moduleError && (
+                                            <motion.div
+                                                initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                                                animate={{ opacity: 1, height: 'auto', marginBottom: 16 }}
+                                                exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                                                className="px-3 py-2 bg-red-500/20 border border-red-500/50 rounded-xl text-red-400 text-xs flex items-center gap-2"
+                                            >
+                                                <Icon name="alert-circle" size={16} className="min-w-fit" />
+                                                {moduleError}
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+
                                     <div className="space-y-2">
                                         {modules.map((module, idx) => (
                                             <div key={idx} className="mb-4">
                                                 <button
-                                                    onClick={() => setActiveModule(idx)}
+                                                    onClick={() => handleModuleClick(idx, module)}
                                                     className={`w-full text-left p-3 rounded-xl transition-all flex items-center justify-between mb-2 ${activeModule === idx ? 'bg-indigo-600/20 border border-indigo-500/30' : 'hover:bg-white/5'}`}
                                                 >
                                                     <div className="flex-1">
@@ -1348,11 +1003,7 @@
                             </div>
                             
                             <div className="lg:col-span-2">
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="glass-strong rounded-2xl overflow-hidden mb-6"
-                                >
+                                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-strong rounded-2xl overflow-hidden mb-6">
                                     {activeLesson ? (
                                         <>
                                             <div className="aspect-video bg-gray-900 relative overflow-hidden">
@@ -1361,103 +1012,57 @@
                                                         {!watching ? (
                                                             <div className="relative w-full h-full cursor-pointer" onClick={() => setWatching(true)}>
                                                                 {activeLesson.thumbnail ? (
-                                                                    <img 
-                                                                        src={activeLesson.thumbnail} 
-                                                                        alt={activeLesson.title}
-                                                                        className="video-thumbnail"
-                                                                    />
+                                                                    <img src={activeLesson.thumbnail} alt={activeLesson.title} className="video-thumbnail" />
                                                                 ) : (
                                                                     <div className="w-full h-full bg-gradient-to-br from-indigo-900 to-purple-900 flex items-center justify-center">
-                                                                        <div className="text-center">
-                                                                            <Icon name="video" size={48} className="text-indigo-400 mx-auto mb-4" />
-                                                                            <p className="text-white font-semibold">{activeLesson.title}</p>
-                                                                        </div>
+                                                                        <div className="text-center"><Icon name="video" size={48} className="text-indigo-400 mx-auto mb-4" /><p className="text-white font-semibold">{activeLesson.title}</p></div>
                                                                     </div>
                                                                 )}
                                                                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center hover:bg-black/30 transition-all">
-                                                                    <motion.div 
-                                                                        className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center"
-                                                                        whileHover={{ scale: 1.1 }}
-                                                                    >
+                                                                    <motion.div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center" whileHover={{ scale: 1.1 }}>
                                                                         <Icon name="play" size={32} className="text-white ml-1" />
                                                                     </motion.div>
                                                                 </div>
                                                             </div>
                                                         ) : (
-                                                            <iframe
-                                                                src={activeLesson.videoUrl}
-                                                                className="w-full h-full border-0"
-                                                                allow="autoplay; encrypted-media"
-                                                                allowFullScreen
-                                                                title={activeLesson.title}
-                                                            ></iframe>
+                                                            <iframe src={activeLesson.videoUrl} className="w-full h-full border-0" allow="autoplay; encrypted-media" allowFullScreen title={activeLesson.title}></iframe>
                                                         )}
                                                     </>
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center">
-                                                        <div className="text-center">
-                                                            <div className="w-20 h-20 rounded-full bg-indigo-500/20 flex items-center justify-center mx-auto mb-4">
-                                                                <Icon name="video-off" size={32} className="text-indigo-400" />
-                                                            </div>
-                                                            <p className="text-gray-400">Video not available yet</p>
-                                                        </div>
+                                                        <div className="text-center"><div className="w-20 h-20 rounded-full bg-indigo-500/20 flex items-center justify-center mx-auto mb-4"><Icon name="video-off" size={32} className="text-indigo-400" /></div><p className="text-gray-400">Video not available yet</p></div>
                                                     </div>
                                                 )}
                                                 
                                                 {activeLesson.videoUrl && watching && (
                                                     <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 to-transparent">
                                                         <div className="h-1 bg-gray-700 rounded-full overflow-hidden mb-2">
-                                                            <div 
-                                                                className="h-full video-progress rounded-full transition-all"
-                                                                style={{ width: `${videoProgress}%` }}
-                                                            ></div>
+                                                            <div className="h-full video-progress rounded-full transition-all" style={{ width: `${videoProgress}%` }}></div>
                                                         </div>
                                                         <div className="flex justify-between text-sm text-gray-300">
-                                                            <span>{Math.round(videoProgress)}% watched</span>
-                                                            <span>{activeLesson.duration}</span>
+                                                            <span>{Math.round(videoProgress)}% watched</span><span>{activeLesson.duration}</span>
                                                         </div>
                                                     </div>
                                                 )}
                                             </div>
                                             
                                             <div className="p-6">
-                                                <div className="flex items-center gap-3 mb-3">
-                                                    {activeLesson.isQuiz && <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded-lg">Quiz</span>}
-                                                    {activeLesson.isProject && <span className="px-2 py-1 bg-purple-500/20 text-purple-400 text-xs rounded-lg">Project</span>}
-                                                    {activeLesson.isCertification && <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-lg">Certificate</span>}
-                                                </div>
                                                 <h2 className="text-xl font-bold text-white mb-2">{activeLesson.title}</h2>
-                                                <p className="text-gray-400 text-sm mb-4">
-                                                    Complete this lesson to unlock the next one. Watch the full video and mark as complete.
-                                                </p>
+                                                <p className="text-gray-400 text-sm mb-4">Complete this lesson to unlock the next one. Watch the full video and mark as complete.</p>
                                                 <div className="flex gap-3">
                                                     {!completedLessons.includes(activeLesson.id) ? (
-                                                        <button 
-                                                            onClick={handleVideoComplete}
-                                                            className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg text-sm font-medium hover:shadow-lg transition-all flex items-center gap-2"
-                                                        >
-                                                            <Icon name="check" size={16} />
-                                                            Mark as Complete
-                                                        </button>
+                                                        <button onClick={handleVideoComplete} className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg text-sm font-medium hover:shadow-lg transition-all flex items-center gap-2"><Icon name="check" size={16} />Mark as Complete</button>
                                                     ) : (
-                                                        <span className="px-4 py-2 bg-green-500/20 text-green-400 rounded-lg text-sm font-medium flex items-center gap-2">
-                                                            <Icon name="check-circle" size={16} />
-                                                            Completed
-                                                        </span>
+                                                        <span className="px-4 py-2 bg-green-500/20 text-green-400 rounded-lg text-sm font-medium flex items-center gap-2"><Icon name="check-circle" size={16} />Completed</span>
                                                     )}
-                                                    <button className="px-4 py-2 glass text-white rounded-lg text-sm font-medium hover:bg-white/10 transition-all flex items-center gap-2">
-                                                        <Icon name="download" size={16} />
-                                                        Resources
-                                                    </button>
+                                                    <button className="px-4 py-2 glass text-white rounded-lg text-sm font-medium hover:bg-white/10 transition-all flex items-center gap-2"><Icon name="download" size={16} />Resources</button>
                                                 </div>
                                             </div>
                                         </>
                                     ) : (
                                         <div className="aspect-video flex items-center justify-center">
                                             <div className="text-center">
-                                                <div className="w-20 h-20 rounded-full bg-indigo-500/20 flex items-center justify-center mx-auto mb-4">
-                                                    <Icon name="book-open" size={32} className="text-indigo-400" />
-                                                </div>
+                                                <div className="w-20 h-20 rounded-full bg-indigo-500/20 flex items-center justify-center mx-auto mb-4"><Icon name="book-open" size={32} className="text-indigo-400" /></div>
                                                 <h3 className="text-white font-semibold mb-2">Select a Lesson</h3>
                                                 <p className="text-gray-400 text-sm">Choose a lesson from the sidebar to start learning</p>
                                             </div>
@@ -1466,18 +1071,11 @@
                                 </motion.div>
                                 
                                 {activeLesson && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 0.1 }}
-                                        className="glass rounded-2xl p-6"
-                                    >
+                                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass rounded-2xl p-6">
                                         <h3 className="text-white font-semibold mb-4">Lesson Notes</h3>
                                         <div className="space-y-3 text-sm text-gray-400">
                                             <p>• This lesson covers key concepts in {modules[activeModule].title}</p>
                                             <p>• Watch the complete video to unlock the next lesson</p>
-                                            <p>• Download resources for offline reference</p>
-                                            <p>• Complete the quiz after watching (if applicable)</p>
                                         </div>
                                     </motion.div>
                                 )}
@@ -1496,8 +1094,6 @@
             
             useEffect(() => {
                 initParticles();
-                
-                // Check for saved session
                 const savedUser = localStorage.getItem('aura_current_user');
                 const sessionExpiry = localStorage.getItem('aura_session_expiry');
                 
@@ -1506,185 +1102,67 @@
                         setUser(JSON.parse(savedUser));
                         setIsLoggedIn(true);
                     } else {
-                        // Session expired
                         localStorage.removeItem('aura_current_user');
                         localStorage.removeItem('aura_session_expiry');
                     }
                 }
                 
-                const handleNav = (e) => {
-                    const page = e.detail;
-                    setCurrentPage(page);
-                };
-                
+                const handleNav = (e) => setCurrentPage(e.detail);
                 window.addEventListener('navigate', handleNav);
                 return () => window.removeEventListener('navigate', handleNav);
             }, []);
             
             const handleLogin = (userData) => {
-                setUser(userData);
-                setIsLoggedIn(true);
-                
-                // Set session for 30 days
+                setUser(userData); setIsLoggedIn(true);
                 const expiry = new Date().getTime() + (30 * 24 * 60 * 60 * 1000);
                 localStorage.setItem('aura_current_user', JSON.stringify(userData));
                 localStorage.setItem('aura_session_expiry', expiry.toString());
-                
                 setCurrentPage('dashboard');
             };
             
             const handleLogout = () => {
-                setUser(null);
-                setIsLoggedIn(false);
+                setUser(null); setIsLoggedIn(false);
                 localStorage.removeItem('aura_current_user');
                 localStorage.removeItem('aura_session_expiry');
                 setCurrentPage('home');
             };
             
-            const updateUser = (updatedUser) => {
-                setUser(updatedUser);
-            };
-            
             const renderPage = () => {
                 switch(currentPage) {
-                    case 'home':
-                        return <Hero />;
-                    case 'auth':
-                        return <AuthPage onLogin={handleLogin} />;
-                    case 'dashboard':
-                        return isLoggedIn ? <Dashboard onLogout={handleLogout} /> : <AuthPage onLogin={handleLogin} />;
-                    case 'profile':
-                        return isLoggedIn ? <Profile onLogout={handleLogout} /> : <AuthPage onLogin={handleLogin} />;
-                    case 'courses':
-                        return isLoggedIn ? <Dashboard onLogout={handleLogout} /> : <AuthPage onLogin={handleLogin} />;
+                    case 'home': return <Hero />;
+                    case 'auth': return <AuthPage onLogin={handleLogin} />;
+                    case 'dashboard': return isLoggedIn ? <Dashboard onLogout={handleLogout} /> : <AuthPage onLogin={handleLogin} />;
+                    case 'profile': return isLoggedIn ? <Profile onLogout={handleLogout} /> : <AuthPage onLogin={handleLogin} />;
                     case 'about':
                         return (
                             <div className="min-h-screen flex items-center justify-center pt-20 px-6">
                                 <div className="max-w-3xl mx-auto text-center">
                                     <h1 className="text-4xl font-bold text-white mb-6">About <span className="gradient-text">Aura AI</span></h1>
-                                    <p className="text-gray-400 text-lg leading-relaxed mb-8">
-                                        Aura AI Creations is Sri Lanka's premier AI education platform. We provide comprehensive video courses in Sinhala medium, covering everything from basic AI concepts to advanced business applications.
-                                    </p>
+                                    <p className="text-gray-400 text-lg leading-relaxed mb-8">Aura AI Creations is Sri Lanka's premier AI education platform. We provide comprehensive video courses in Sinhala medium.</p>
                                     <div className="grid md:grid-cols-3 gap-6 mt-12">
-                                        <motion.div 
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: 0.1 }}
-                                            className="glass p-6 rounded-2xl hover:border-indigo-500/50 transition-all"
-                                        >
-                                            <div className="text-3xl font-bold text-white mb-2">7</div>
-                                            <div className="text-gray-400">Video Lessons</div>
-                                        </motion.div>
-                                        <motion.div 
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: 0.2 }}
-                                            className="glass p-6 rounded-2xl hover:border-purple-500/50 transition-all"
-                                        >
-                                            <div className="text-3xl font-bold text-white mb-2">500+</div>
-                                            <div className="text-gray-400">Students</div>
-                                        </motion.div>
-                                        <motion.div 
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: 0.3 }}
-                                            className="glass p-6 rounded-2xl hover:border-pink-500/50 transition-all"
-                                        >
-                                            <div className="text-3xl font-bold text-white mb-2">100%</div>
-                                            <div className="text-gray-400">Sinhala Medium</div>
-                                        </motion.div>
+                                        <div className="glass p-6 rounded-2xl"><div className="text-3xl font-bold text-white mb-2">13+</div><div className="text-gray-400">Video Lessons</div></div>
+                                        <div className="glass p-6 rounded-2xl"><div className="text-3xl font-bold text-white mb-2">500+</div><div className="text-gray-400">Students</div></div>
+                                        <div className="glass p-6 rounded-2xl"><div className="text-3xl font-bold text-white mb-2">100%</div><div className="text-gray-400">Sinhala Medium</div></div>
                                     </div>
                                 </div>
                             </div>
                         );
-                    default:
-                        return <Hero />;
+                    default: return <Hero />;
                 }
             };
             
             return (
-                <AuthContext.Provider value={{ user, isLoggedIn, logout: handleLogout, updateUser }}>
+                <AuthContext.Provider value={{ user, isLoggedIn, logout: handleLogout, updateUser: setUser }}>
                     <div className="min-h-screen text-gray-100 font-sans">
                         <Navigation />
                         <AnimatePresence mode="wait">
-                            <motion.main
-                                key={currentPage}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -20 }}
-                                transition={{ duration: 0.3 }}
-                                className="relative z-10"
-                            >
+                            <motion.main key={currentPage} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }} className="relative z-10">
                                 {renderPage()}
                             </motion.main>
                         </AnimatePresence>
-                        
                         <footer className="border-t border-gray-800 py-12 mt-20 relative z-10">
-                            <div className="max-w-7xl mx-auto px-6">
-                                <div className="grid md:grid-cols-4 gap-8 mb-8">
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-4">
-                                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center overflow-hidden">
-                                                <img 
-                                                    src="https://files.aura-ai.top/logo.png" 
-                                                    alt="Aura AI Logo" 
-                                                    className="w-full h-full object-cover"
-                                                    onError={(e) => {
-                                                        e.target.style.display = 'none';
-                                                        e.target.parentElement.innerHTML = '<span class="text-white font-bold text-sm">A</span>';
-                                                    }}
-                                                />
-                                            </div>
-                                            <span className="text-lg font-bold text-white">Aura AI</span>
-                                        </div>
-                                        <p className="text-gray-400 text-sm">Professional AI education platform for Sri Lankan students.</p>
-                                    </div>
-                                    <div>
-                                        <h4 className="text-white font-semibold mb-4">Contact</h4>
-                                        <ul className="space-y-2 text-sm text-gray-400">
-                                            <li>WhatsApp: 076 219 6055</li>
-                                            <li>Colombo, Sri Lanka</li>
-                                        </ul>
-                                    </div>
-                                    <div>
-                                        <h4 className="text-white font-semibold mb-4">Social</h4>
-                                        <div className="flex gap-3">
-                                            <motion.a 
-                                                href="https://www.facebook.com/Auraaiareations" 
-                                                target="_blank" 
-                                                whileHover={{ scale: 1.1 }}
-                                                className="w-10 h-10 rounded-full glass flex items-center justify-center hover:bg-blue-600 transition-all"
-                                            >
-                                                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                                                </svg>
-                                            </motion.a>
-                                            <motion.a 
-                                                href="https://www.tiktok.com/@ai_podda2" 
-                                                target="_blank" 
-                                                whileHover={{ scale: 1.1 }}
-                                                className="w-10 h-10 rounded-full glass flex items-center justify-center hover:bg-black transition-all"
-                                            >
-                                                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                                    <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
-                                                </svg>
-                                            </motion.a>
-                                            <motion.a 
-                                                href="https://wa.me/94762196055" 
-                                                target="_blank" 
-                                                whileHover={{ scale: 1.1 }}
-                                                className="w-10 h-10 rounded-full glass flex items-center justify-center hover:bg-green-600 transition-all"
-                                            >
-                                                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
-                                                </svg>
-                                            </motion.a>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="border-t border-gray-800 pt-8 text-center text-gray-500 text-sm">
-                                    © 2024 Aura AI Creations. All rights reserved.
-                                </div>
+                            <div className="max-w-7xl mx-auto px-6 text-center text-gray-500 text-sm">
+                                © 2024 Aura AI Creations. All rights reserved.
                             </div>
                         </footer>
                     </div>
