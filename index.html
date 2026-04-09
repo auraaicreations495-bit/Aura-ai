@@ -45,6 +45,7 @@
     <script type="text/babel">
         const { useState, useEffect, createContext, useContext } = React;
         const { motion, AnimatePresence } = window.Motion;
+        const AuthContext = createContext(null);
 
         // --- Background Particles ---
         const initParticles = () => {
@@ -72,6 +73,7 @@
             return <i data-lucide={name} width={size} height={size} className={className}></i>;
         };
 
+        // --- Dashboard Components ---
         const Dashboard = ({ user, onLogout }) => {
             const [activeModule, setActiveModule] = useState(0);
             const [activeLesson, setActiveLesson] = useState(null);
@@ -108,22 +110,25 @@
                     currentCompleted.push(activeLesson.id);
                     setCompletedLessons(currentCompleted);
                 }
-                
-                // වීඩියෝව මාරු කරන විට player එක රීසෙට් කරන්න
                 setWatching(false);
 
+                // මීළඟ පාඩම හෝ මොඩියුලය සෙවීම
                 const currentModuleObj = modules[activeModule];
                 const currentLessonIdx = currentModuleObj.lessons.findIndex(l => l.id === activeLesson.id);
 
                 if (currentLessonIdx < currentModuleObj.lessons.length - 1) {
+                    // ඊළඟ පාඩම පෙන්වන්න
                     setActiveLesson(currentModuleObj.lessons[currentLessonIdx + 1]);
                 } else if (activeModule < modules.length - 1) {
+                    // ඊළඟ මොඩියුලයට යන්න
                     const nextModuleIdx = activeModule + 1;
                     const nextModule = modules[nextModuleIdx];
                     
                     if (currentCompleted.includes(nextModule.requiresCompletion)) {
                         setActiveModule(nextModuleIdx);
                         setActiveLesson(nextModule.lessons[0]);
+                    } else {
+                        // මීළඟ එක ලොක් නම් මුකුත් කරන්න එපා, පවතින වීඩියෝවම තියෙන්න දෙන්න
                     }
                 }
             };
@@ -147,9 +152,7 @@
                                 <div className="space-y-4">
                                     <div>
                                         <div className="flex justify-between text-xs mb-1"><span>Course Progress</span><span>{overallProgress}%</span></div>
-                                        <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
-                                            <div className="h-full video-progress transition-all duration-500" style={{width: `${overallProgress}%`}}></div>
-                                        </div>
+                                        <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden"><div className="h-full video-progress" style={{width: `${overallProgress}%`}}></div></div>
                                     </div>
                                     <button onClick={onLogout} className="w-full py-2 border border-red-500/30 text-red-400 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-red-500/10 transition-all"><Icon name="log-out" size={14}/> Logout</button>
                                 </div>
@@ -181,7 +184,7 @@
                                                         <button 
                                                             key={lesson.id} 
                                                             onClick={() => { setActiveLesson(lesson); setWatching(false); }}
-                                                            className={`w-full text-left p-2 rounded-lg text-[11px] flex items-center gap-2 transition-colors ${activeLesson?.id === lesson.id ? 'text-indigo-400 bg-indigo-500/10' : completedLessons.includes(lesson.id) ? 'text-green-400' : 'text-gray-400'}`}
+                                                            className={`w-full text-left p-2 rounded-lg text-[11px] flex items-center gap-2 ${activeLesson?.id === lesson.id ? 'text-indigo-400 bg-indigo-500/10' : completedLessons.includes(lesson.id) ? 'text-green-400' : 'text-gray-400'}`}
                                                         >
                                                             <Icon name={completedLessons.includes(lesson.id) ? "check-circle" : "play-circle"} size={12}/>
                                                             <span className="flex-1 truncate">{lesson.title}</span>
@@ -195,7 +198,7 @@
                             </div>
                         </div>
 
-                        {/* Main Content */}
+                        {/* Main Content (Video Area) */}
                         <div className="lg:col-span-2">
                             <div className="glass-strong rounded-3xl overflow-hidden min-h-[400px] flex flex-col">
                                 {activeLesson ? (
@@ -209,22 +212,12 @@
                                                     </div>
                                                 </div>
                                             ) : (
-                                                <iframe src={`${activeLesson.videoUrl}?autoplay=1`} className="w-full h-full border-none" allow="autoplay; fullscreen" allowFullScreen></iframe>
+                                                <iframe src={`${activeLesson.videoUrl}?autoplay=1`} className="w-full h-full" allow="autoplay" allowFullScreen></iframe>
                                             )}
                                         </div>
-                                        <div className="p-6">
-                                            <div className="flex justify-between items-start mb-4">
-                                                <div>
-                                                    <h2 className="text-xl font-bold mb-1">{activeLesson.title}</h2>
-                                                    <p className="text-gray-400 text-sm">වීඩියෝව නරඹා අවසානයේ සම්පූර්ණ කළ බව සලකුණු කරන්න.</p>
-                                                </div>
-                                                {overallProgress === 100 && (
-                                                    <div className="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-[10px] font-bold border border-green-500/30 flex items-center gap-1">
-                                                        <Icon name="award" size={12}/> COURSE COMPLETE
-                                                    </div>
-                                                )}
-                                            </div>
-                                            
+                                        <div className="p-6 flex-1">
+                                            <h2 className="text-xl font-bold mb-2">{activeLesson.title}</h2>
+                                            <p className="text-gray-400 text-sm mb-6">වීඩියෝව සම්පූර්ණයෙන් නරඹා අවසානයේ 'Mark as Complete' බොත්තම ඔබන්න.</p>
                                             <div className="flex gap-3">
                                                 {!completedLessons.includes(activeLesson.id) ? (
                                                     <button onClick={handleVideoComplete} className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl text-sm font-semibold flex items-center gap-2 hover:shadow-lg transition-all"><Icon name="check" size={18}/> Mark as Complete</button>
@@ -232,14 +225,13 @@
                                                     <div className="px-6 py-2.5 bg-green-500/20 text-green-400 border border-green-500/30 rounded-xl text-sm font-semibold flex items-center gap-2"><Icon name="check-circle" size={18}/> Completed</div>
                                                 )}
                                             </div>
-
-                                            {/* සියල්ල අවසන් වූ පසු පෙන්වන සුබපැතුම් පණිවිඩය (පහළින්) */}
+                                            {/* සියල්ල ඉවර උනාම එන පණිවිඩය වීඩියෝවට යටින් පෙන්වීමට සකසා ඇත */}
                                             {overallProgress === 100 && (
-                                                <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} className="mt-6 p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl flex items-center gap-4">
-                                                    <div className="w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center shrink-0"><Icon name="star" size={20}/></div>
+                                                <motion.div initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} className="mt-8 p-4 bg-green-500/10 border border-green-500/20 rounded-2xl flex items-center gap-4">
+                                                    <Icon name="award" className="text-green-500" size={32} />
                                                     <div>
-                                                        <h4 className="font-bold text-sm">සියල්ල සාර්ථකයි!</h4>
-                                                        <p className="text-gray-400 text-xs">ඔබ දැනට පවතින සියලුම පාඩම් සාර්ථකව අවසන් කර ඇත.</p>
+                                                        <h4 className="font-bold text-green-400">සියල්ල සාර්ථකයි!</h4>
+                                                        <p className="text-gray-400 text-xs">ඔබ සියලුම පාඩම් නරඹා අවසන් කර ඇත.</p>
                                                     </div>
                                                 </motion.div>
                                             )}
@@ -247,9 +239,11 @@
                                     </>
                                 ) : (
                                     <div className="flex-1 flex flex-col items-center justify-center p-10 text-center">
-                                        <div className="w-16 h-16 bg-indigo-500/10 text-indigo-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-indigo-500/20"><Icon name="play" size={32}/></div>
-                                        <h3 className="text-lg font-bold mb-2">පාඩමක් තෝරාගන්න</h3>
-                                        <p className="text-gray-500 text-sm">ඉගෙනීම ආරම්භ කිරීමට වම්පස මෙනුවෙන් පාඩමක් තෝරන්න.</p>
+                                        <div>
+                                            <div className="w-16 h-16 bg-indigo-500/10 text-indigo-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-indigo-500/20"><Icon name="play" size={32}/></div>
+                                            <h3 className="text-lg font-bold mb-2">පාඩමක් තෝරාගන්න</h3>
+                                            <p className="text-gray-500 text-sm">ඉගෙනීම ආරම්භ කිරීමට වම්පස මෙනුවෙන් පාඩමක් තෝරන්න.</p>
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -259,6 +253,7 @@
             );
         };
 
+        // --- Main App ---
         const App = () => {
             const [currentPage, setCurrentPage] = useState('home');
             const [user, setUser] = useState(null);
@@ -267,6 +262,9 @@
                 initParticles();
                 const saved = localStorage.getItem('aura_user');
                 if(saved) { setUser(JSON.parse(saved)); setCurrentPage('dashboard'); }
+                const nav = (e) => setCurrentPage(e.detail);
+                window.addEventListener('navigate', nav);
+                return () => window.removeEventListener('navigate', nav);
             }, []);
 
             const login = (u) => { setUser(u); localStorage.setItem('aura_user', JSON.stringify(u)); setCurrentPage('dashboard'); };
@@ -274,6 +272,7 @@
 
             return (
                 <div className="font-sans">
+                    {/* Simplified Navbar */}
                     <nav className="fixed top-0 w-full z-50 glass py-4 px-6 flex justify-between items-center">
                         <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentPage('home')}>
                             <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold">A</div>
