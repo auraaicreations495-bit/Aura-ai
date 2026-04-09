@@ -18,47 +18,24 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Outfit', 'Noto Sans Sinhala', 'sans-serif'],
-                    },
+                    fontFamily: { sans: ['Outfit', 'Noto Sans Sinhala', 'sans-serif'] },
                     colors: {
-                        aura: {
-                            primary: '#6366f1',
-                            secondary: '#8b5cf6',
-                            accent: '#ec4899',
-                            dark: '#0f172a',
-                            darker: '#020617',
-                        }
+                        aura: { primary: '#6366f1', secondary: '#8b5cf6', accent: '#ec4899', dark: '#0f172a', darker: '#020617' }
                     },
-                    animation: {
-                        'gradient': 'gradient 8s linear infinite',
-                        'float': 'float 6s ease-in-out infinite',
-                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'glow': 'glow 2s ease-in-out infinite alternate',
-                    },
-                    keyframes: {
-                        gradient: { '0%, 100%': { backgroundPosition: '0% 50%' }, '50%': { backgroundPosition: '100% 50%' } },
-                        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-20px)' } },
-                        glow: { '0%': { boxShadow: '0 0 5px #6366f1, 0 0 10px #6366f1' }, '100%': { boxShadow: '0 0 20px #6366f1, 0 0 30px #8b5cf6' } }
-                    }
+                    animation: { 'glow': 'glow 2s ease-in-out infinite alternate' },
+                    keyframes: { glow: { '0%': { boxShadow: '0 0 5px #6366f1' }, '100%': { boxShadow: '0 0 20px #8b5cf6' } } }
                 }
             }
         }
     </script>
     
     <style>
-        body { background: #020617; overflow-x: hidden; }
+        body { background: #020617; overflow-x: hidden; color: white; }
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
         .glass-strong { background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(20px); border: 1px solid rgba(99, 102, 241, 0.2); }
-        .gradient-text { background: linear-gradient(135deg, #6366f1 0%, #ec4899 50%, #8b5cf6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .gradient-text { background: linear-gradient(135deg, #6366f1, #ec4899, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .video-progress { background: linear-gradient(90deg, #6366f1, #ec4899); }
         #canvas-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
-        .video-progress { background: linear-gradient(90deg, #6366f1 0%, #ec4899 100%); }
-        .logo-container { animation: float 6s ease-in-out infinite; }
-        .gradient-border { position: relative; background: linear-gradient(135deg, #6366f1, #ec4899, #8b5cf6); padding: 2px; border-radius: 1rem; }
-        .video-thumbnail { width: 100%; height: 100%; object-fit: cover; border-radius: 1rem; }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -66,128 +43,38 @@
     <canvas id="canvas-container"></canvas>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef, createContext, useContext } = React;
+        const { useState, useEffect, createContext, useContext } = React;
         const { motion, AnimatePresence } = window.Motion;
         const AuthContext = createContext(null);
-        const FIXED_SECRET_KEY = 'AURAAICREION4VIP';
 
-        // --- Utils ---
-        const base32Decode = (input) => {
-            const cleaned = input.toUpperCase().replace(/[^A-Z2-7]/g, '');
-            const result = []; let bits = 0; let value = 0;
-            for (let i = 0; i < cleaned.length; i++) {
-                const char = cleaned.charAt(i);
-                const val = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'.indexOf(char);
-                if (val === -1) continue;
-                value = (value << 5) | val; bits += 5;
-                if (bits >= 8) { result.push((value >>> (bits - 8)) & 0xFF); bits -= 8; }
-            }
-            return new Uint8Array(result);
-        };
-
-        const hmacSha1 = async (key, message) => {
-            const cryptoKey = await crypto.subtle.importKey('raw', key, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']);
-            const signature = await crypto.subtle.sign('HMAC', cryptoKey, message);
-            return new Uint8Array(signature);
-        };
-
-        const generateTOTP = async (secret) => {
-            try {
-                const step = Math.floor(Date.now() / 30000);
-                const timeBuffer = new ArrayBuffer(8);
-                new DataView(timeBuffer).setUint32(4, step, false);
-                const keyBytes = base32Decode(secret);
-                const hmac = await hmacSha1(keyBytes, timeBuffer);
-                const offset = hmac[hmac.length - 1] & 0x0F;
-                const binary = ((hmac[offset] & 0x7F) << 24) | ((hmac[offset + 1] & 0xFF) << 16) | ((hmac[offset + 2] & 0xFF) << 8) | (hmac[offset + 3] & 0xFF);
-                return (binary % 1000000).toString().padStart(6, '0');
-            } catch (e) { return "000000"; }
-        };
-
-        // --- Background ---
+        // --- Background Particles ---
         const initParticles = () => {
             const canvas = document.getElementById('canvas-container');
+            if(!canvas) return;
             const ctx = canvas.getContext('2d');
+            let particles = [];
             const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
-            resize(); window.addEventListener('resize', resize);
-            const particles = Array.from({ length: 100 }, () => ({
-                x: Math.random() * canvas.width, y: Math.random() * canvas.height,
-                size: Math.random() * 2 + 0.5, sx: Math.random() * 0.5 - 0.25, sy: Math.random() * 0.5 - 0.25, o: Math.random() * 0.5 + 0.2
-            }));
-            const animate = () => {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            window.addEventListener('resize', resize); resize();
+            for(let i=0; i<80; i++) particles.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, s: Math.random()*2, vx: Math.random()-0.5, vy: Math.random()-0.5 });
+            const anim = () => {
+                ctx.clearRect(0,0,canvas.width,canvas.height); ctx.fillStyle = "rgba(99, 102, 241, 0.2)";
                 particles.forEach(p => {
-                    p.x += p.sx; p.y += p.sy;
-                    if (p.x > canvas.width) p.x = 0; if (p.x < 0) p.x = canvas.width;
-                    if (p.y > canvas.height) p.y = 0; if (p.y < 0) p.y = canvas.height;
-                    ctx.fillStyle = `rgba(99, 102, 241, ${p.o})`;
-                    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+                    p.x += p.vx; p.y += p.vy;
+                    if(p.x<0 || p.x>canvas.width) p.vx*=-1; if(p.y<0 || p.y>canvas.height) p.vy*=-1;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, Math.PI*2); ctx.fill();
                 });
-                requestAnimationFrame(animate);
+                requestAnimationFrame(anim);
             };
-            animate();
+            anim();
         };
 
-        const Icon = ({ name, size = 24, className = "" }) => {
+        const Icon = ({ name, size = 20, className = "" }) => {
             useEffect(() => { if (window.lucide) window.lucide.createIcons(); }, [name]);
-            return <i data-lucide={name} width={size} height={size} className={className} style={{display: 'inline-block'}}></i>;
+            return <i data-lucide={name} width={size} height={size} className={className}></i>;
         };
 
-        // --- Components ---
-        const Navigation = () => {
-            const { user, isLoggedIn } = useContext(AuthContext);
-            const [scrolled, setScrolled] = useState(false);
-            useEffect(() => {
-                const handleScroll = () => setScrolled(window.scrollY > 50);
-                window.addEventListener('scroll', handleScroll);
-                return () => window.removeEventListener('scroll', handleScroll);
-            }, []);
-
-            const navAction = (page) => window.dispatchEvent(new CustomEvent('navigate', { detail: page }));
-
-            return (
-                <motion.nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'glass-strong py-3' : 'py-6 bg-transparent'}`}>
-                    <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-                        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navAction('home')}>
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center overflow-hidden"><img src="https://files.aura-ai.top/logo.png" className="w-full h-full object-cover" /></div>
-                            <span className="text-xl font-bold text-white">Aura <span className="gradient-text">AI</span></span>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            {isLoggedIn ? (
-                                <div onClick={() => navAction('profile')} className="flex items-center gap-3 glass px-4 py-2 rounded-full cursor-pointer">
-                                    <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-xs font-bold text-white overflow-hidden">
-                                        {user?.profilePicture ? <img src={user.profilePicture} /> : user?.name?.[0]}
-                                    </div>
-                                    <span className="text-white text-sm hidden sm:block">{user?.name}</span>
-                                </div>
-                            ) : (
-                                <button onClick={() => navAction('auth')} className="px-6 py-2 bg-indigo-600 text-white rounded-full text-sm font-medium">Login</button>
-                            )}
-                        </div>
-                    </div>
-                </motion.nav>
-            );
-        };
-
-        const Hero = () => (
-            <section className="min-h-screen flex items-center justify-center pt-20">
-                <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
-                    <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }}>
-                        <h1 className="text-5xl lg:text-7xl font-bold text-white leading-tight mb-6">Master AI with <br/><span className="gradient-text">Aura Creations</span></h1>
-                        <p className="text-gray-400 text-lg mb-8">Professional Video Lessons • Sinhala Medium • Lifetime Access • Rs. 9,500 Only</p>
-                        <button onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'auth' }))} className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full font-semibold flex items-center gap-2">
-                            <Icon name="play-circle" /> Start Learning Now
-                        </button>
-                    </motion.div>
-                    <div className="relative logo-container hidden lg:block">
-                        <div className="gradient-border p-1 rounded-3xl"><div className="bg-aura-dark p-8 rounded-3xl"><img src="https://files.aura-ai.top/logo.png" className="w-64 h-64 object-contain" /></div></div>
-                    </div>
-                </div>
-            </section>
-        );
-
-        const Dashboard = ({ onLogout }) => {
-            const { user } = useContext(AuthContext);
+        // --- Dashboard Components ---
+        const Dashboard = ({ user, onLogout }) => {
             const [activeModule, setActiveModule] = useState(0);
             const [activeLesson, setActiveLesson] = useState(null);
             const [completedLessons, setCompletedLessons] = useState([]);
@@ -212,118 +99,151 @@
                     requiresCompletion: 7, 
                     lessons: [
                         { id: 8, title: 'Founder Mastery - Lesson 1', duration: '20:00', videoUrl: 'https://drive.google.com/file/d/1LmDbGoHxZOlRLnShNKXxyjy0aI0g4UA8/preview', thumbnail: 'https://drive.google.com/thumbnail?id=1LmDbGoHxZOlRLnShNKXxyjy0aI0g4UA8&sz=w1000' },
-                        { id: 9, title: 'Founder Mastery - Lesson 2', duration: '20:00', videoUrl: 'https://drive.google.com/file/d/1SBag6taDaltJOhJXfTrAAuqsk5Dq60zu/preview', thumbnail: 'https://drive.google.com/thumbnail?id=1SBag6taDaltJOhJXfTrAAuqsk5Dq60zu&sz=w1000' },
-                        { id: 10, title: 'Founder Mastery - Lesson 3', duration: '20:00', videoUrl: 'https://drive.google.com/file/d/1scvSqL8t2OjPLXTBWJPSEyxPjKjvwQ65/preview', thumbnail: 'https://drive.google.com/thumbnail?id=1scvSqL8t2OjPLXTBWJPSEyxPjKjvwQ65&sz=w1000' },
-                        { id: 11, title: 'Founder Mastery - Lesson 4', duration: '20:00', videoUrl: 'https://drive.google.com/file/d/1ErUKP4NjFbUk2q2NyTCHJsf8whOm2YEt/preview', thumbnail: 'https://drive.google.com/thumbnail?id=1ErUKP4NjFbUk2q2NyTCHJsf8whOm2YEt&sz=w1000' },
-                        { id: 12, title: 'Founder Mastery - Lesson 5', duration: '20:00', videoUrl: 'https://drive.google.com/file/d/15qs0O0vPuCiLbaNU0gTIfyNHaqce8D7q/preview', thumbnail: 'https://drive.google.com/thumbnail?id=15qs0O0vPuCiLbaNU0gTIfyNHaqce8D7q&sz=w1000' },
-                        { id: 13, title: 'Founder Mastery - Lesson 6', duration: '20:00', videoUrl: 'https://drive.google.com/file/d/18mSOecPmCVjpXaxHtQyPC24nwR57prmX/preview', thumbnail: 'https://drive.google.com/thumbnail?id=18mSOecPmCVjpXaxHtQyPC24nwR57prmX&sz=w1000' }
+                        { id: 9, title: 'Founder Mastery - Lesson 2', duration: '20:00', videoUrl: 'https://drive.google.com/file/d/1SBag6taDaltJOhJXfTrAAuqsk5Dq60zu/preview', thumbnail: 'https://drive.google.com/thumbnail?id=1SBag6taDaltJOhJXfTrAAuqsk5Dq60zu&sz=w1000' }
                     ]
                 }
             ];
 
-            const handleModuleClick = (idx, module) => {
-                if (module.requiresCompletion && !completedLessons.includes(module.requiresCompletion)) {
-                    setModuleError('කරුණාකරලා AI Foundations - Basic Lessons ඔක්කොම බලලා ඉන්න');
-                    setTimeout(() => setModuleError(''), 4000);
-                    return;
-                }
-                setActiveModule(idx);
-                setModuleError('');
-            };
-
             const handleVideoComplete = () => {
-                let updated = [...completedLessons];
-                if (activeLesson && !updated.includes(activeLesson.id)) {
-                    updated.push(activeLesson.id);
-                    setCompletedLessons(updated);
+                let currentCompleted = [...completedLessons];
+                if (activeLesson && !currentCompleted.includes(activeLesson.id)) {
+                    currentCompleted.push(activeLesson.id);
+                    setCompletedLessons(currentCompleted);
                 }
                 setWatching(false);
 
-                // Auto move to next lesson or module
-                const currentLessons = modules[activeModule].lessons;
-                const currentIdx = currentLessons.findIndex(l => l.id === activeLesson.id);
+                // මීළඟ පාඩම හෝ මොඩියුලය සෙවීම
+                const currentModuleObj = modules[activeModule];
+                const currentLessonIdx = currentModuleObj.lessons.findIndex(l => l.id === activeLesson.id);
 
-                if (currentIdx < currentLessons.length - 1) {
-                    setActiveLesson(currentLessons[currentIdx + 1]);
+                if (currentLessonIdx < currentModuleObj.lessons.length - 1) {
+                    // ඊළඟ පාඩම පෙන්වන්න
+                    setActiveLesson(currentModuleObj.lessons[currentLessonIdx + 1]);
                 } else if (activeModule < modules.length - 1) {
-                    const nextModIdx = activeModule + 1;
-                    if (updated.includes(modules[nextModIdx].requiresCompletion || -1) || !modules[nextModIdx].requiresCompletion) {
-                        setActiveModule(nextModIdx);
-                        setActiveLesson(modules[nextModIdx].lessons[0]);
+                    // ඊළඟ මොඩියුලයට යන්න
+                    const nextModuleIdx = activeModule + 1;
+                    const nextModule = modules[nextModuleIdx];
+                    
+                    if (currentCompleted.includes(nextModule.requiresCompletion)) {
+                        setActiveModule(nextModuleIdx);
+                        setActiveLesson(nextModule.lessons[0]);
+                    } else {
+                        setActiveLesson(null); // මීළඟ එක ලොක් නම් වීඩියෝ එක අයින් කරන්න
                     }
+                } else {
+                    setActiveLesson(null); // ඔක්කොම ඉවරයි නම්
                 }
             };
 
             const totalLessons = modules.reduce((acc, m) => acc + m.lessons.length, 0);
-            const progress = Math.round((completedLessons.length / totalLessons) * 100);
+            const overallProgress = Math.round((completedLessons.length / totalLessons) * 100);
 
             return (
                 <div className="min-h-screen pt-24 pb-12 px-4 max-w-7xl mx-auto">
                     <div className="grid lg:grid-cols-3 gap-8">
+                        {/* Sidebar */}
                         <div className="space-y-6">
                             <div className="glass-strong rounded-2xl p-6">
-                                <div className="flex items-center gap-4 mb-4">
-                                    <div className="w-12 h-12 rounded-full bg-indigo-500 flex items-center justify-center font-bold">{user?.name?.[0]}</div>
-                                    <div><h3 className="text-white font-semibold">{user?.name}</h3><p className="text-xs text-gray-400">Student</p></div>
+                                <div className="flex items-center gap-4 mb-6">
+                                    <div className="w-12 h-12 rounded-full bg-indigo-500 flex items-center justify-center font-bold text-lg">{user?.name[0]}</div>
+                                    <div className="flex-1">
+                                        <h3 className="font-semibold truncate">{user?.name}</h3>
+                                        <p className="text-gray-400 text-xs">{user?.email}</p>
+                                    </div>
                                 </div>
-                                <div className="text-sm mb-2 flex justify-between"><span className="text-gray-400">Progress</span><span className="text-white">{progress}%</span></div>
-                                <div className="h-2 bg-gray-700 rounded-full overflow-hidden"><div className="h-full bg-indigo-500 transition-all duration-500" style={{width: `${progress}%`}}></div></div>
+                                <div className="space-y-4">
+                                    <div>
+                                        <div className="flex justify-between text-xs mb-1"><span>Course Progress</span><span>{overallProgress}%</span></div>
+                                        <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden"><div className="h-full video-progress" style={{width: `${overallProgress}%`}}></div></div>
+                                    </div>
+                                    <button onClick={onLogout} className="w-full py-2 border border-red-500/30 text-red-400 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-red-500/10 transition-all"><Icon name="log-out" size={14}/> Logout</button>
+                                </div>
                             </div>
 
                             <div className="glass rounded-2xl p-4 max-h-[500px] overflow-y-auto">
-                                <h4 className="text-white font-semibold mb-4">Modules</h4>
-                                {moduleError && <div className="p-2 mb-4 bg-red-500/20 text-red-400 text-xs rounded-lg border border-red-500/50">{moduleError}</div>}
-                                {modules.map((m, mIdx) => (
-                                    <div key={mIdx} className="mb-4">
-                                        <button onClick={() => handleModuleClick(mIdx, m)} className={`w-full text-left p-3 rounded-xl mb-1 flex justify-between items-center ${activeModule === mIdx ? 'bg-indigo-600/20 border border-indigo-500/30' : 'hover:bg-white/5'}`}>
-                                            <span className="text-xs font-medium text-white">{m.title}</span>
-                                            {m.requiresCompletion && !completedLessons.includes(m.requiresCompletion) && <Icon name="lock" size={14} className="text-yellow-500" />}
-                                        </button>
-                                        {activeModule === mIdx && (
-                                            <div className="ml-2 space-y-1">
-                                                {m.lessons.map((l, lIdx) => (
-                                                    <button key={l.id} onClick={() => setActiveLesson(l)} className={`w-full text-left p-2 rounded-lg text-[11px] flex items-center gap-2 ${activeLesson?.id === l.id ? 'text-indigo-400 bg-indigo-400/10' : completedLessons.includes(l.id) ? 'text-green-400' : 'text-gray-400'}`}>
-                                                        <Icon name={completedLessons.includes(l.id) ? "check-circle" : "play-circle"} size={12} />
-                                                        <span className="truncate">{l.title}</span>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
+                                <h4 className="font-semibold mb-4 text-sm">Course Modules</h4>
+                                {moduleError && <div className="p-2 mb-3 bg-red-500/20 text-red-400 text-[10px] rounded-lg border border-red-500/40 flex items-center gap-2"><Icon name="alert-circle" size={12}/> {moduleError}</div>}
+                                <div className="space-y-3">
+                                    {modules.map((mod, idx) => (
+                                        <div key={idx}>
+                                            <button 
+                                                onClick={() => {
+                                                    if(mod.requiresCompletion && !completedLessons.includes(mod.requiresCompletion)) {
+                                                        setModuleError(`කරුණාකර Basic Lessons ඔක්කොම බලන්න.`);
+                                                        setTimeout(() => setModuleError(''), 3000);
+                                                        return;
+                                                    }
+                                                    setActiveModule(idx);
+                                                }}
+                                                className={`w-full text-left p-3 rounded-xl transition-all flex justify-between items-center ${activeModule === idx ? 'bg-indigo-600/20 border border-indigo-500/30' : 'hover:bg-white/5'}`}
+                                            >
+                                                <span className="text-xs font-medium">{mod.title}</span>
+                                                {mod.requiresCompletion && !completedLessons.includes(mod.requiresCompletion) && <Icon name="lock" size={14} className="text-yellow-500"/>}
+                                            </button>
+                                            {activeModule === idx && (
+                                                <div className="mt-2 ml-2 space-y-1">
+                                                    {mod.lessons.map(lesson => (
+                                                        <button 
+                                                            key={lesson.id} 
+                                                            onClick={() => { setActiveLesson(lesson); setWatching(false); }}
+                                                            className={`w-full text-left p-2 rounded-lg text-[11px] flex items-center gap-2 ${activeLesson?.id === lesson.id ? 'text-indigo-400 bg-indigo-500/10' : completedLessons.includes(lesson.id) ? 'text-green-400' : 'text-gray-400'}`}
+                                                        >
+                                                            <Icon name={completedLessons.includes(lesson.id) ? "check-circle" : "play-circle"} size={12}/>
+                                                            <span className="flex-1 truncate">{lesson.title}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
 
+                        {/* Main Content (Video Area) */}
                         <div className="lg:col-span-2">
-                            <div className="glass-strong rounded-2xl overflow-hidden min-h-[400px]">
+                            <div className="glass-strong rounded-3xl overflow-hidden min-h-[400px] flex flex-col">
                                 {activeLesson ? (
-                                    <div>
+                                    <>
                                         <div className="aspect-video bg-black relative">
                                             {!watching ? (
-                                                <div className="w-full h-full cursor-pointer group" onClick={() => setWatching(true)}>
-                                                    <img src={activeLesson.thumbnail} className="w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity" />
-                                                    <div className="absolute inset-0 flex items-center justify-center"><Icon name="play" size={64} className="text-white opacity-80" /></div>
+                                                <div className="w-full h-full relative cursor-pointer group" onClick={() => setWatching(true)}>
+                                                    <img src={activeLesson.thumbnail} className="w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-all"/>
+                                                    <div className="absolute inset-0 flex items-center justify-center">
+                                                        <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center group-hover:scale-110 transition-all"><Icon name="play" size={32} className="ml-1"/></div>
+                                                    </div>
                                                 </div>
                                             ) : (
-                                                <iframe src={activeLesson.videoUrl} className="w-full h-full" allow="autoplay" allowFullScreen></iframe>
+                                                <iframe src={`${activeLesson.videoUrl}?autoplay=1`} className="w-full h-full" allow="autoplay" allowFullScreen></iframe>
                                             )}
                                         </div>
-                                        <div className="p-6">
-                                            <h2 className="text-xl font-bold text-white mb-4">{activeLesson.title}</h2>
-                                            <div className="flex gap-4">
+                                        <div className="p-6 flex-1">
+                                            <h2 className="text-xl font-bold mb-2">{activeLesson.title}</h2>
+                                            <p className="text-gray-400 text-sm mb-6">වීඩියෝව සම්පූර්ණයෙන් නරඹා අවසානයේ 'Mark as Complete' බොත්තම ඔබන්න.</p>
+                                            <div className="flex gap-3">
                                                 {!completedLessons.includes(activeLesson.id) ? (
-                                                    <button onClick={handleVideoComplete} className="px-6 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium">Mark as Complete</button>
+                                                    <button onClick={handleVideoComplete} className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl text-sm font-semibold flex items-center gap-2 hover:shadow-lg transition-all"><Icon name="check" size={18}/> Mark as Complete</button>
                                                 ) : (
-                                                    <span className="px-6 py-2 bg-green-500/20 text-green-400 rounded-lg text-sm font-medium flex items-center gap-2"><Icon name="check-circle" size={16} /> Completed</span>
+                                                    <div className="px-6 py-2.5 bg-green-500/20 text-green-400 border border-green-500/30 rounded-xl text-sm font-semibold flex items-center gap-2"><Icon name="check-circle" size={18}/> Completed</div>
                                                 )}
                                             </div>
                                         </div>
-                                    </div>
+                                    </>
                                 ) : (
-                                    <div className="h-full flex flex-col items-center justify-center text-center p-10">
-                                        <Icon name="award" size={64} className="text-indigo-500 mb-4" />
-                                        <h3 className="text-white text-xl font-bold">Start Your Learning Journey</h3>
-                                        <p className="text-gray-400 mt-2">Select a lesson from the sidebar to begin watching</p>
+                                    <div className="flex-1 flex flex-col items-center justify-center p-10 text-center">
+                                        {overallProgress === 100 ? (
+                                            <motion.div initial={{scale:0.8}} animate={{scale:1}}>
+                                                <div className="w-20 h-20 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-green-500/30"><Icon name="award" size={40}/></div>
+                                                <h2 className="text-2xl font-bold mb-2">සියල්ල සාර්ථකයි!</h2>
+                                                <p className="text-gray-400 max-w-xs mx-auto">ඔබ දැනට පවතින සියලුම පාඩම් නරඹා අවසන් කර ඇත. මීළඟ අප්ඩේට් එකෙන් අලුත් පාඩම් බලාපොරොත්තු වන්න.</p>
+                                            </motion.div>
+                                        ) : (
+                                            <div>
+                                                <div className="w-16 h-16 bg-indigo-500/10 text-indigo-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-indigo-500/20"><Icon name="play" size={32}/></div>
+                                                <h3 className="text-lg font-bold mb-2">පාඩමක් තෝරාගන්න</h3>
+                                                <p className="text-gray-500 text-sm">ඉගෙනීම ආරම්භ කිරීමට වම්පස මෙනුවෙන් පාඩමක් තෝරන්න.</p>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -333,65 +253,65 @@
             );
         };
 
-        const AuthPage = ({ onLogin }) => {
-            const [isLogin, setIsLogin] = useState(true);
-            const [data, setData] = useState({ name: '', email: '', password: '', phone: '', otp: '' });
-            const [step, setStep] = useState(1);
-            
-            const handleSubmit = async (e) => {
-                e.preventDefault();
-                if(isLogin) { onLogin({ name: data.email.split('@')[0], email: data.email }); }
-                else {
-                    if(step === 1) setStep(2);
-                    else onLogin({ name: data.name, email: data.email });
-                }
-            };
+        // --- Main App ---
+        const App = () => {
+            const [currentPage, setCurrentPage] = useState('home');
+            const [user, setUser] = useState(null);
+
+            useEffect(() => {
+                initParticles();
+                const saved = localStorage.getItem('aura_user');
+                if(saved) { setUser(JSON.parse(saved)); setCurrentPage('dashboard'); }
+                const nav = (e) => setCurrentPage(e.detail);
+                window.addEventListener('navigate', nav);
+                return () => window.removeEventListener('navigate', nav);
+            }, []);
+
+            const login = (u) => { setUser(u); localStorage.setItem('aura_user', JSON.stringify(u)); setCurrentPage('dashboard'); };
+            const logout = () => { setUser(null); localStorage.removeItem('aura_user'); setCurrentPage('home'); };
 
             return (
-                <div className="min-h-screen flex items-center justify-center px-4">
-                    <div className="glass-strong p-8 rounded-3xl w-full max-w-md">
-                        <h2 className="text-2xl font-bold text-white text-center mb-6">{isLogin ? 'Login' : 'Register'}</h2>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            {!isLogin && step === 1 && <input type="text" placeholder="Name" className="w-full p-3 rounded-xl bg-gray-800 text-white border border-gray-700" onChange={e => setData({...data, name: e.target.value})} />}
-                            <input type="email" placeholder="Email" className="w-full p-3 rounded-xl bg-gray-800 text-white border border-gray-700" onChange={e => setData({...data, email: e.target.value})} />
-                            {!isLogin && step === 2 ? (
-                                <input type="text" placeholder="6-digit OTP" className="w-full p-3 rounded-xl bg-gray-800 text-white border border-gray-700 text-center tracking-widest" maxLength="6" onChange={e => setData({...data, otp: e.target.value})} />
-                            ) : (
-                                <input type="password" placeholder="Password" className="w-full p-3 rounded-xl bg-gray-800 text-white border border-gray-700" onChange={e => setData({...data, password: e.target.value})} />
+                <div className="font-sans">
+                    {/* Simplified Navbar */}
+                    <nav className="fixed top-0 w-full z-50 glass py-4 px-6 flex justify-between items-center">
+                        <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentPage('home')}>
+                            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold">A</div>
+                            <span className="font-bold text-lg">Aura <span className="gradient-text">AI</span></span>
+                        </div>
+                        {user ? (
+                            <button onClick={() => setCurrentPage('dashboard')} className="text-sm font-medium hover:text-indigo-400 transition-colors">My Learning</button>
+                        ) : (
+                            <button onClick={() => setCurrentPage('auth')} className="px-5 py-2 bg-indigo-600 rounded-full text-xs font-bold">Login</button>
+                        )}
+                    </nav>
+
+                    <AnimatePresence mode="wait">
+                        <motion.main key={currentPage} initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}>
+                            {currentPage === 'home' && (
+                                <div className="h-screen flex flex-col items-center justify-center text-center px-6">
+                                    <h1 className="text-5xl font-bold mb-4">Unlock Your <span className="gradient-text">AI Potential</span></h1>
+                                    <p className="text-gray-400 max-w-lg mb-8">Professional AI video courses in Sinhala. Learn, create, and master the future.</p>
+                                    <button onClick={() => setCurrentPage('auth')} className="px-10 py-4 bg-indigo-600 rounded-full font-bold hover:scale-105 transition-all">Get Started</button>
+                                </div>
                             )}
-                            <button className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold">{isLogin ? 'Login' : step === 1 ? 'Next' : 'Verify & Register'}</button>
-                        </form>
-                        <button onClick={() => {setIsLogin(!isLogin); setStep(1);}} className="w-full mt-4 text-gray-400 text-sm">{isLogin ? 'Create an account' : 'Already have an account?'}</button>
-                    </div>
+                            {currentPage === 'auth' && (
+                                <div className="h-screen flex items-center justify-center">
+                                    <div className="glass-strong p-8 rounded-3xl w-full max-w-sm">
+                                        <h2 className="text-2xl font-bold mb-6 text-center">Login to Aura AI</h2>
+                                        <input id="email" type="email" placeholder="Email" className="w-full p-3 rounded-xl bg-white/5 border border-white/10 mb-4 focus:border-indigo-500 outline-none" />
+                                        <button onClick={() => login({name: "Student", email: document.getElementById('email').value})} className="w-full py-3 bg-indigo-600 rounded-xl font-bold">Sign In</button>
+                                    </div>
+                                </div>
+                            )}
+                            {currentPage === 'dashboard' && <Dashboard user={user} onLogout={logout} />}
+                        </motion.main>
+                    </AnimatePresence>
                 </div>
             );
         };
 
-        const App = () => {
-            const [page, setPage] = useState('home');
-            const [user, setUser] = useState(null);
-            
-            useEffect(() => {
-                initParticles();
-                const handleNav = (e) => setPage(e.detail);
-                window.addEventListener('navigate', handleNav);
-                return () => window.removeEventListener('navigate', handleNav);
-            }, []);
-
-            return (
-                <AuthContext.Provider value={{ user, isLoggedIn: !!user }}>
-                    <div className="min-h-screen text-gray-100">
-                        <Navigation />
-                        {page === 'home' && <Hero />}
-                        {page === 'auth' && <AuthPage onLogin={(u) => {setUser(u); setPage('dashboard');}} />}
-                        {page === 'dashboard' && <Dashboard onLogout={() => {setUser(null); setPage('home');}} />}
-                        <footer className="py-10 text-center text-gray-600 text-xs">© 2024 Aura AI Creations</footer>
-                    </div>
-                </AuthContext.Provider>
-            );
-        };
-
-        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
