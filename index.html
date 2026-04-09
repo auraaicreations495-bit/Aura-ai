@@ -176,6 +176,7 @@
             border-radius: 1rem;
         }
     </style>
+<base target="_blank">
 </head>
 <body>
     <div id="root"></div>
@@ -1148,6 +1149,54 @@
                             thumbnail: 'https://drive.google.com/thumbnail?id=1kswDC7oT5YV9SfqdBlmARDJj6_eiyJzD&sz=w1000'
                         }
                     ]
+                },
+                {
+                    title: 'Founder Mastery Course',
+                    requiresCompletion: 7, // Requires Lesson 7 to be completed
+                    lessons: [
+                        { 
+                            id: 8, 
+                            title: 'Founder Mastery - Lesson 1', 
+                            duration: '20:00', 
+                            videoUrl: 'https://drive.google.com/file/d/1LmDbGoHxZOlRLnShNKXxyjy0aI0g4UA8/preview',
+                            thumbnail: 'https://drive.google.com/thumbnail?id=1LmDbGoHxZOlRLnShNKXxyjy0aI0g4UA8&sz=w1000'
+                        },
+                        { 
+                            id: 9, 
+                            title: 'Founder Mastery - Lesson 2', 
+                            duration: '20:00', 
+                            videoUrl: 'https://drive.google.com/file/d/1SBag6taDaltJOhJXfTrAAuqsk5Dq60zu/preview',
+                            thumbnail: 'https://drive.google.com/thumbnail?id=1SBag6taDaltJOhJXfTrAAuqsk5Dq60zu&sz=w1000'
+                        },
+                        { 
+                            id: 10, 
+                            title: 'Founder Mastery - Lesson 3', 
+                            duration: '20:00', 
+                            videoUrl: 'https://drive.google.com/file/d/1scvSqL8t2OjPLXTBWJPSEyxPjKjvwQ65/preview',
+                            thumbnail: 'https://drive.google.com/thumbnail?id=1scvSqL8t2OjPLXTBWJPSEyxPjKjvwQ65&sz=w1000'
+                        },
+                        { 
+                            id: 11, 
+                            title: 'Founder Mastery - Lesson 4', 
+                            duration: '20:00', 
+                            videoUrl: 'https://drive.google.com/file/d/1ErUKP4NjFbUk2q2NyTCHJsf8whOm2YEt/preview',
+                            thumbnail: 'https://drive.google.com/thumbnail?id=1ErUKP4NjFbUk2q2NyTCHJsf8whOm2YEt&sz=w1000'
+                        },
+                        { 
+                            id: 12, 
+                            title: 'Founder Mastery - Lesson 5', 
+                            duration: '20:00', 
+                            videoUrl: 'https://drive.google.com/file/d/15qs0O0vPuCiLbaNU0gTIfyNHaqce8D7q/preview',
+                            thumbnail: 'https://drive.google.com/thumbnail?id=15qs0O0vPuCiLbaNU0gTIfyNHaqce8D7q&sz=w1000'
+                        },
+                        { 
+                            id: 13, 
+                            title: 'Founder Mastery - Lesson 6', 
+                            duration: '20:00', 
+                            videoUrl: 'https://drive.google.com/file/d/18mSOecPmCVjpXaxHtQyPC24nwR57prmX/preview',
+                            thumbnail: 'https://drive.google.com/thumbnail?id=18mSOecPmCVjpXaxHtQyPC24nwR57prmX&sz=w1000'
+                        }
+                    ]
                 }
             ];
             
@@ -1179,6 +1228,17 @@
             return (
                 <div className="min-h-screen pt-24 pb-12 px-4">
                     <div className="max-w-7xl mx-auto">
+                        {/* Error Message Banner */}
+                        {errorMessage && (
+                            <motion.div 
+                                initial={{ opacity: 0, y: -20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-xl text-red-400 text-center font-medium"
+                            >
+                                {errorMessage}
+                            </motion.div>
+                        )}
                         <div className="grid lg:grid-cols-3 gap-8">
                             <div className="lg:col-span-1 space-y-6">
                                 <motion.div 
@@ -1251,9 +1311,17 @@
                                                     onClick={() => setActiveModule(idx)}
                                                     className={`w-full text-left p-3 rounded-xl transition-all flex items-center justify-between mb-2 ${activeModule === idx ? 'bg-indigo-600/20 border border-indigo-500/30' : 'hover:bg-white/5'}`}
                                                 >
-                                                    <div>
-                                                        <div className="text-white text-sm font-medium">{module.title}</div>
+                                                    <div className="flex-1">
+                                                        <div className="text-white text-sm font-medium flex items-center gap-2">
+                                                            {module.title}
+                                                            {module.requiresModuleCompletion && modules[0].lessons.some(l => !completedLessons.includes(l.id)) && (
+                                                                <Icon name="lock" size={14} className="text-yellow-500" />
+                                                            )}
+                                                        </div>
                                                         <div className="text-gray-500 text-xs">{module.lessons.length} lessons</div>
+                                                        {module.requiresModuleCompletion && modules[0].lessons.some(l => !completedLessons.includes(l.id)) && (
+                                                            <div className="text-yellow-500 text-xs mt-1">Complete all Basic Lessons to unlock</div>
+                                                        )}
                                                     </div>
                                                     {module.lessons.every(l => completedLessons.includes(l.id)) && (
                                                         <Icon name="check-circle" size={16} className="text-green-400" />
@@ -1264,7 +1332,14 @@
                                                     <div className="space-y-1 ml-2">
                                                         {module.lessons.map((lesson, lIdx) => {
                                                             const isCompleted = completedLessons.includes(lesson.id);
-                                                            const isLocked = lIdx > 0 && !completedLessons.includes(module.lessons[lIdx - 1]?.id);
+                                                            // Check if entire module is locked (for Founder Mastery)
+                                                            const isModuleLocked = module.requiresModuleCompletion && 
+                                                                modules[0].lessons.some(l => !completedLessons.includes(l.id));
+
+                                                            // Check previous lesson lock in same module
+                                                            const isPrevLocked = lIdx > 0 && !completedLessons.includes(module.lessons[lIdx - 1]?.id);
+
+                                                            const isLocked = isModuleLocked || isPrevLocked;
                                                             const isActive = activeLesson?.id === lesson.id;
                                                             
                                                             return (
