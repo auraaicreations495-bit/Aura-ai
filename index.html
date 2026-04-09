@@ -176,6 +176,7 @@
             border-radius: 1rem;
         }
     </style>
+<base target="_blank">
 </head>
 <body>
     <div id="root"></div>
@@ -1227,17 +1228,6 @@
             return (
                 <div className="min-h-screen pt-24 pb-12 px-4">
                     <div className="max-w-7xl mx-auto">
-                        {/* Error Message Banner */}
-                        {errorMessage && (
-                            <motion.div 
-                                initial={{ opacity: 0, y: -20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -20 }}
-                                className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-xl text-red-400 text-center font-medium"
-                            >
-                                {errorMessage}
-                            </motion.div>
-                        )}
                         <div className="grid lg:grid-cols-3 gap-8">
                             <div className="lg:col-span-1 space-y-6">
                                 <motion.div 
@@ -1313,13 +1303,13 @@
                                                     <div className="flex-1">
                                                         <div className="text-white text-sm font-medium flex items-center gap-2">
                                                             {module.title}
-                                                            {module.requiresModuleCompletion && modules[0].lessons.some(l => !completedLessons.includes(l.id)) && (
+                                                            {module.requiresCompletion && !completedLessons.includes(module.requiresCompletion) && (
                                                                 <Icon name="lock" size={14} className="text-yellow-500" />
                                                             )}
                                                         </div>
                                                         <div className="text-gray-500 text-xs">{module.lessons.length} lessons</div>
-                                                        {module.requiresModuleCompletion && modules[0].lessons.some(l => !completedLessons.includes(l.id)) && (
-                                                            <div className="text-yellow-500 text-xs mt-1">Complete all Basic Lessons to unlock</div>
+                                                        {module.requiresCompletion && !completedLessons.includes(module.requiresCompletion) && (
+                                                            <div className="text-yellow-500 text-xs mt-1">Complete Basic Lessons to unlock</div>
                                                         )}
                                                     </div>
                                                     {module.lessons.every(l => completedLessons.includes(l.id)) && (
@@ -1331,14 +1321,7 @@
                                                     <div className="space-y-1 ml-2">
                                                         {module.lessons.map((lesson, lIdx) => {
                                                             const isCompleted = completedLessons.includes(lesson.id);
-                                                            // Check if entire module is locked (for Founder Mastery)
-                                                            const isModuleLocked = module.requiresModuleCompletion && 
-                                                                modules[0].lessons.some(l => !completedLessons.includes(l.id));
-
-                                                            // Check previous lesson lock in same module
-                                                            const isPrevLocked = lIdx > 0 && !completedLessons.includes(module.lessons[lIdx - 1]?.id);
-
-                                                            const isLocked = isModuleLocked || isPrevLocked;
+                                                            const isLocked = lIdx > 0 && !completedLessons.includes(module.lessons[lIdx - 1]?.id);
                                                             const isActive = activeLesson?.id === lesson.id;
                                                             
                                                             return (
