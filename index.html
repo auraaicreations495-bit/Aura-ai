@@ -496,29 +496,107 @@
             height: 100%;
         }
 
-        /* Red Border Animation for Lessons */
-        .lesson-border-glow {
-            position: relative;
-            background: linear-gradient(90deg, #ef4444, #f87171, #ef4444, #dc2626, #ef4444);
-            background-size: 200% 100%;
-            animation: borderRun 2s linear infinite;
-            padding: 2px;
+        /* Lesson Item Styles - White transparent box with white text, red on active, green on complete */
+        .lesson-item-box {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 0.5rem;
         }
 
-        .lesson-border-glow-inner {
-            background: rgba(15, 23, 42, 0.95);
-            border-radius: calc(0.75rem - 2px);
-            padding: 0.5rem;
+        .lesson-item-box:hover:not(.lesson-active):not(.lesson-completed) {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
         }
 
-        @keyframes borderRun {
-            0% { background-position: 0% 50%; }
-            100% { background-position: 200% 50%; }
+        .lesson-item-box.lesson-active {
+            background: rgba(239, 68, 68, 0.2) !important;
+            border: 2px solid #ef4444 !important;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .lesson-item-box.lesson-completed {
+            background: rgba(34, 197, 94, 0.15) !important;
+            border: 1px solid rgba(34, 197, 94, 0.5) !important;
+        }
+
+        .lesson-item-box.lesson-locked {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .lesson-text {
+            color: #ffffff;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .lesson-text-completed {
+            color: #22c55e !important;
+            font-weight: 600;
+        }
+
+        .lesson-text-active {
+            color: #ffffff !important;
+            font-weight: 700;
+        }
+
+        .lesson-text-locked {
+            color: #9ca3af !important;
+        }
+
+        .lesson-icon {
+            color: #ffffff;
+        }
+
+        .lesson-icon-completed {
+            color: #22c55e !important;
+        }
+
+        .lesson-icon-active {
+            color: #ef4444 !important;
+        }
+
+        .lesson-icon-locked {
+            color: #6b7280 !important;
         }
 
         .lesson-item-wrapper {
             margin-bottom: 8px;
+        }
+
+        /* 4K Video Container */
+        .video-4k-container {
+            position: relative;
+            width: 100%;
+            background: #000;
+            border-radius: 1rem;
+            overflow: hidden;
+        }
+
+        .video-4k-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Profile photo auto-remove on back navigation */
+        .profile-photo-container {
+            position: relative;
+        }
+
+        .profile-photo-temp {
+            animation: photoFadeIn 0.3s ease;
+        }
+
+        @keyframes photoFadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
         }
     </style>
 </head>
@@ -1810,6 +1888,32 @@
                 }
             }, [user?.email]);
             
+            // Handle page visibility change - auto remove photo when navigating away
+            useEffect(() => {
+                const handleVisibilityChange = () => {
+                    if (document.hidden && previewImage) {
+                        // Auto remove photo when user leaves the page
+                        handleRemovePhoto();
+                    }
+                };
+                
+                document.addEventListener('visibilitychange', handleVisibilityChange);
+                
+                // Handle beforeunload
+                const handleBeforeUnload = () => {
+                    if (previewImage) {
+                        handleRemovePhoto();
+                    }
+                };
+                
+                window.addEventListener('beforeunload', handleBeforeUnload);
+                
+                return () => {
+                    document.removeEventListener('visibilitychange', handleVisibilityChange);
+                    window.removeEventListener('beforeunload', handleBeforeUnload);
+                };
+            }, [previewImage]);
+            
             const handleImageChange = (e) => {
                 const file = e.target.files[0];
                 if (file) {
@@ -1882,14 +1986,14 @@
                             className="glass-strong rounded-3xl p-8"
                         >
                             <div className="text-center mb-8">
-                                <div className="relative inline-block">
+                                <div className="relative inline-block profile-photo-container">
                                     <motion.div 
                                         className="w-32 h-32 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 p-1 mx-auto relative"
                                         whileHover={{ scale: 1.05 }}
                                     >
                                         <div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center overflow-hidden">
                                             {previewImage ? (
-                                                <img src={previewImage} alt="Profile" className="w-full h-full object-cover" />
+                                                <img src={previewImage} alt="Profile" className="w-full h-full object-cover profile-photo-temp" />
                                             ) : (
                                                 <span className="text-4xl font-bold text-white">{user?.name?.[0] || 'U'}</span>
                                             )}
@@ -2049,31 +2153,30 @@
             );
         };
         
-        // Lesson Item with Red Border Glow
+        // Updated Lesson Item with White Transparent Box, White Text, Red on Active, Green on Complete
         const LessonItem = ({ lesson, isCompleted, isLocked, isActive, onClick }) => {
             return (
                 <div className="lesson-item-wrapper">
-                    <div className={`lesson-border-glow ${isActive ? 'opacity-100' : 'opacity-0 hover:opacity-100'} transition-opacity duration-300`}>
-                        <div className="lesson-border-glow-inner">
-                            <motion.button
-                                onClick={onClick}
-                                className={`lesson-item w-full text-left p-2 rounded-lg text-xs flex items-center gap-2 transition-all ${
-                                    isActive ? 'lesson-active text-indigo-300' : 
-                                    isCompleted ? 'text-green-400' : 
-                                    isLocked ? 'text-gray-600 cursor-not-allowed' : 
-                                    'text-gray-400 hover:text-white'
-                                }`}
-                                disabled={isLocked}
-                                whileHover={!isLocked ? { x: 5 } : {}}
-                            >
-                                {isCompleted ? <Icon name="check-circle" size={12} /> : 
-                                 isLocked ? <Icon name="lock" size={12} /> : 
-                                 <Icon name="play-circle" size={12} />}
-                                <span className="flex-1 truncate">{lesson.title}</span>
-                                <span className="text-gray-600">{lesson.duration}</span>
-                            </motion.button>
+                    <motion.div
+                        onClick={!isLocked ? onClick : undefined}
+                        className={`lesson-item-box ${isActive ? 'lesson-active' : ''} ${isCompleted ? 'lesson-completed' : ''} ${isLocked ? 'lesson-locked' : ''}`}
+                        whileHover={!isLocked && !isActive ? { scale: 1.02, x: 5 } : {}}
+                        whileTap={!isLocked ? { scale: 0.98 } : {}}
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className={`flex-shrink-0 ${isCompleted ? 'lesson-icon-completed' : isActive ? 'lesson-icon-active' : isLocked ? 'lesson-icon-locked' : 'lesson-icon'}`}>
+                                {isCompleted ? <Icon name="check-circle" size={18} /> : 
+                                 isLocked ? <Icon name="lock" size={18} /> : 
+                                 <Icon name="play-circle" size={18} />}
+                            </div>
+                            <span className={`flex-1 truncate ${isCompleted ? 'lesson-text-completed' : isActive ? 'lesson-text-active' : isLocked ? 'lesson-text-locked' : 'lesson-text'}`}>
+                                {lesson.title}
+                            </span>
+                            <span className={`text-xs flex-shrink-0 ${isCompleted ? 'text-green-400' : isActive ? 'text-red-400' : 'text-gray-500'}`}>
+                                {lesson.duration}
+                            </span>
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
             );
         };
@@ -2132,7 +2235,7 @@
                             title: 'AI Lip Sync Techniques & Generating Sinhala AI Voices', 
                             duration: '25:00', 
                             videoUrl: 'https://drive.google.com/file/d/1HXyLn9wDiGiLCelEXr0jipPIcQ5EjfMC/preview',
-                            thumbnail: 'https://drive.google.com/thumbnail?id=1HXyLn9wDiGiLCelEXr0jipPIcQ5EjfMC&sz=w1000'
+                                            thumbnail: 'https://drive.google.com/thumbnail?id=1HXyLn9wDiGiLCelEXr0jipPIcQ5EjfMC&sz=w1000'
                         },
                         { 
                             id: 7, 
@@ -2246,6 +2349,19 @@
                         setTimeout(() => {
                             alert('🎉 Congratulations! You have unlocked the Founder Mastery Course!');
                         }, 500);
+                    }
+                    
+                    // Auto advance to next lesson
+                    const currentModule = modules[activeModule];
+                    const currentIndex = currentModule.lessons.findIndex(l => l.id === activeLesson.id);
+                    const nextLesson = currentModule.lessons[currentIndex + 1];
+                    
+                    if (nextLesson) {
+                        setTimeout(() => {
+                            setActiveLesson(nextLesson);
+                            setVideoProgress(0);
+                            setWatching(false);
+                        }, 1000);
                     }
                 }
                 setWatching(false);
@@ -2457,7 +2573,7 @@
                                 >
                                     {activeLesson ? (
                                         <>
-                                            <div className="aspect-video bg-gray-900 relative overflow-hidden">
+                                            <div className="video-4k-container aspect-video bg-gray-900 relative overflow-hidden">
                                                 {activeLesson.videoUrl ? (
                                                     <>
                                                         {!watching ? (
@@ -2556,14 +2672,6 @@
                                                             Completed
                                                         </span>
                                                     )}
-                                                    <motion.button 
-                                                        className="px-4 py-2 glass text-white rounded-lg text-sm font-medium hover:bg-white/10 transition-all flex items-center gap-2"
-                                                        whileHover={{ scale: 1.05 }}
-                                                        whileTap={{ scale: 0.95 }}
-                                                    >
-                                                        <Icon name="download" size={16} />
-                                                        Resources
-                                                    </motion.button>
                                                 </div>
                                             </div>
                                         </>
