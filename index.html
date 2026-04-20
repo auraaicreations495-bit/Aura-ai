@@ -53,9 +53,6 @@
                         'spin-slow': 'spin 8s linear infinite',
                         'orbit': 'orbit 4s linear infinite',
                         'photo-glow': 'photoGlow 2s ease-in-out infinite',
-                        'float-card': 'floatCard 3s ease-in-out infinite',
-                        'pulse-ring': 'pulseRing 2s ease-out infinite',
-                        'shimmer': 'shimmer 2s linear infinite',
                     },
                     keyframes: {
                         gradient: {
@@ -95,20 +92,6 @@
                         photoGlow: {
                             '0%, 100%': { boxShadow: '0 0 5px #22c55e, 0 0 10px #22c55e, 0 0 15px #22c55e' },
                             '50%': { boxShadow: '0 0 20px #22c55e, 0 0 30px #22c55e, 0 0 40px #22c55e' },
-                        },
-                        floatCard: {
-                            '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
-                            '25%': { transform: 'translateY(-10px) rotate(1deg)' },
-                            '50%': { transform: 'translateY(-5px) rotate(0deg)' },
-                            '75%': { transform: 'translateY(-15px) rotate(-1deg)' },
-                        },
-                        pulseRing: {
-                            '0%': { transform: 'scale(1)', opacity: '1' },
-                            '100%': { transform: 'scale(1.5)', opacity: '0' },
-                        },
-                        shimmer: {
-                            '0%': { backgroundPosition: '-1000px 0' },
-                            '100%': { backgroundPosition: '1000px 0' },
                         }
                     }
                 }
@@ -117,12 +100,6 @@
     </script>
     
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
         body {
             background: #020617;
             overflow-x: hidden;
@@ -130,10 +107,9 @@
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
         }
         
+        /* Prevent screenshots and screen recording */
         @media print {
             body { display: none !important; }
         }
@@ -176,6 +152,7 @@
             text-align: center;
         }
         
+        /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -233,8 +210,6 @@
             height: 100%;
             object-fit: cover;
             border-radius: 1rem;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
         }
         
         .unlock-animation {
@@ -261,6 +236,7 @@
             100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
         }
 
+        /* AI Intro Animation Styles */
         .ai-intro-container {
             position: fixed;
             top: 0;
@@ -349,6 +325,7 @@
             animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
         }
 
+        /* Photo glow animation */
         .photo-glow-ring {
             position: absolute;
             inset: -4px;
@@ -396,6 +373,7 @@
             box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
         }
 
+        /* Anti-screenshot overlay */
         .anti-screenshot {
             position: relative;
         }
@@ -413,67 +391,131 @@
             pointer-events: none;
             z-index: 100;
         }
-
-        /* High quality video rendering */
-        video, iframe {
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
+        
+        /* AI Tips Animation Styles */
+        .tip-icon-container {
+            position: relative;
+            overflow: hidden;
         }
-
-        /* AI Tips Card Animations */
-        .ai-tip-card {
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        
+        .tip-icon-container::before {
+            content: '';
+            position: absolute;
+            inset: -50%;
+            background: conic-gradient(from 0deg, transparent, rgba(99, 102, 241, 0.3), transparent);
+            animation: rotate 3s linear infinite;
         }
-        .ai-tip-card:hover {
-            transform: translateY(-10px) scale(1.02);
-            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.3);
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
-        .ai-tip-icon {
+        
+        .tip-card {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tip-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { left: -100%; }
+            50% { left: 100%; }
+            100% { left: 100%; }
+        }
+        
+        .floating-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(40px);
+            opacity: 0.4;
+            animation: orb-float 8s ease-in-out infinite;
+        }
+        
+        @keyframes orb-float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -30px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+        
+        .tip-number {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tip-number::after {
+            content: '';
+            position: absolute;
+            inset: -8px;
+            border-radius: 50%;
+            border: 2px dashed rgba(99, 102, 241, 0.3);
+            animation: spin-slow 10s linear infinite;
+        }
+        
+        /* Security overlay */
+        .security-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9998;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0,0,0,0.01) 2px,
+                rgba(0,0,0,0.01) 4px
+            );
+        }
+        
+        /* Gallery upload styles */
+        .gallery-upload {
+            position: relative;
+            cursor: pointer;
             transition: all 0.3s ease;
         }
-        .ai-tip-card:hover .ai-tip-icon {
-            transform: scale(1.2) rotate(10deg);
+        
+        .gallery-upload:hover {
+            transform: scale(1.05);
         }
-        .ai-tip-glow {
+        
+        .gallery-upload input[type="file"] {
             position: absolute;
             inset: 0;
-            border-radius: inherit;
             opacity: 0;
-            transition: opacity 0.3s ease;
-            background: radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.2), transparent 70%);
-        }
-        .ai-tip-card:hover .ai-tip-glow {
-            opacity: 1;
-        }
-
-        /* Floating animation for cards */
-        .float-animation {
-            animation: floatCard 4s ease-in-out infinite;
-        }
-        .float-animation:nth-child(2) { animation-delay: 0.5s; }
-        .float-animation:nth-child(3) { animation-delay: 1s; }
-        .float-animation:nth-child(4) { animation-delay: 1.5s; }
-        .float-animation:nth-child(5) { animation-delay: 2s; }
-        .float-animation:nth-child(6) { animation-delay: 2.5s; }
-
-        /* Shimmer effect */
-        .shimmer {
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-            background-size: 1000px 100%;
-            animation: shimmer 2s infinite;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
         }
     </style>
 </head>
 <body>
     <div id="root"></div>
     <canvas id="canvas-container"></canvas>
+    <div class="security-overlay"></div>
 
     <script type="text/babel">
         const { useState, useEffect, useRef, createContext, useContext } = React;
         const { motion, AnimatePresence } = window.Motion;
         
+        // Auth Context
         const AuthContext = createContext(null);
+        
+        // Fixed Secret Key for Aura AI
         const FIXED_SECRET_KEY = 'AURAAICREION4VIP';
+        
+        // Base32 decoding for TOTP
         const base32Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
         
         const base32Decode = (input) => {
@@ -498,6 +540,7 @@
             return new Uint8Array(result);
         };
         
+        // HMAC-SHA1 implementation
         const hmacSha1 = async (key, message) => {
             const cryptoKey = await crypto.subtle.importKey(
                 'raw',
@@ -510,6 +553,7 @@
             return new Uint8Array(signature);
         };
         
+        // Generate TOTP using proper RFC 6238 algorithm
         const generateTOTP = async (secret, timeStep = null) => {
             try {
                 const step = timeStep || Math.floor(Date.now() / 30000);
@@ -575,16 +619,19 @@
             return 'device_' + Math.abs(hash).toString(16);
         };
         
+        // Email validation
         const isValidEmail = (email) => {
             const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             return re.test(email);
         };
         
+        // Phone validation (Sri Lankan format)
         const isValidPhone = (phone) => {
             const re = /^(07\d{8}|\+94\d{9})$/;
             return re.test(phone.replace(/\s/g, ''));
         };
         
+        // Particle Background
         const initParticles = () => {
             const canvas = document.getElementById('canvas-container');
             const ctx = canvas.getContext('2d');
@@ -674,6 +721,7 @@
             window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
         };
         
+        // AI Introduction Animation Component
         const AIIntroAnimation = ({ onComplete }) => {
             const [text, setText] = useState('');
             const [showContent, setShowContent] = useState(false);
@@ -980,7 +1028,7 @@
                                 className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-6"
                             >
                                 <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-                                <span className="text-sm text-gray-300">Premium AI Course</span>
+                                <span className="text-sm text-gray-300">Professional AI Education</span>
                             </motion.div>
 
                             <h1 className="text-5xl lg:text-7xl font-bold text-white leading-tight mb-6">
@@ -1059,43 +1107,50 @@
             );
         };
         
+        // AI Tips Component with Animations
         const AITips = () => {
             const tips = [
                 {
                     icon: 'brain',
                     title: 'AI මූලික සංකල්ප',
                     desc: 'Artificial Intelligence යනු මිනිස් බුද්ධිය අනුකරණය කරන පද්ධති වේ. Machine Learning හා Deep Learning යනු AI හි උප ක්ෂේත්‍ර වේ.',
-                    color: 'indigo'
+                    color: 'indigo',
+                    number: '01'
                 },
                 {
                     icon: 'message-square',
                     title: 'Prompt Engineering',
                     desc: 'ChatGPT, Claude වැනි AI මාදිලි සමඟ කාර්යක්ෂමව සන්නිවේදනය කිරීමට නිවැරදි prompts භාවිතා කිරීම අත්‍යවශ්‍ය වේ.',
-                    color: 'purple'
+                    color: 'purple',
+                    number: '02'
                 },
                 {
                     icon: 'image',
                     title: 'AI Image Generation',
                     desc: 'Midjourney, DALL-E, Stable Diffusion භාවිතයෙන් professional quality images සහ art සාදා ගත හැක.',
-                    color: 'pink'
+                    color: 'pink',
+                    number: '03'
                 },
                 {
                     icon: 'video',
                     title: 'AI Video Creation',
                     desc: 'Runway, Pika Labs, Sora වැනි මෙවලම් භාවිතයෙන් text descriptions වලින් videos සාදා ගත හැක.',
-                    color: 'blue'
+                    color: 'blue',
+                    number: '04'
                 },
                 {
                     icon: 'mic',
                     title: 'Voice AI & Lip Sync',
                     desc: 'ElevenLabs, HeyGen භාවිතයෙන් realistic AI voices සහ lip-sync videos සාදා ගත හැක.',
-                    color: 'green'
+                    color: 'green',
+                    number: '05'
                 },
                 {
                     icon: 'trending-up',
                     title: 'AI Business Applications',
                     desc: 'AI භාවිතයෙන් marketing, content creation, customer service automation සහ business intelligence වැඩි දියුණු කළ හැක.',
-                    color: 'yellow'
+                    color: 'yellow',
+                    number: '06'
                 }
             ];
 
@@ -1103,14 +1158,33 @@
                 <motion.div 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="py-16 px-4"
+                    className="py-16 px-4 relative overflow-hidden"
                 >
-                    <div className="max-w-6xl mx-auto">
+                    {/* Floating Orbs */}
+                    <div className="floating-orb w-64 h-64 bg-indigo-600/20 top-20 left-10" style={{ animationDelay: '0s' }}></div>
+                    <div className="floating-orb w-48 h-48 bg-purple-600/20 bottom-20 right-10" style={{ animationDelay: '2s' }}></div>
+                    <div className="floating-orb w-32 h-32 bg-pink-600/20 top-1/2 left-1/2" style={{ animationDelay: '4s' }}></div>
+                    
+                    <div className="max-w-6xl mx-auto relative z-10">
                         <motion.div 
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             className="text-center mb-12"
                         >
+                            <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ type: "spring", stiffness: 200 }}
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-6"
+                            >
+                                <motion.span 
+                                    className="w-2 h-2 rounded-full bg-indigo-400"
+                                    animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
+                                    transition={{ repeat: Infinity, duration: 2 }}
+                                ></motion.span>
+                                <span className="text-sm text-gray-300">AI Knowledge Hub</span>
+                            </motion.div>
+                            
                             <h2 className="text-3xl font-bold text-white mb-4">
                                 <span className="gradient-text">AI දැනුම</span> ඔබට වැදගත් දේවල්
                             </h2>
@@ -1121,90 +1195,36 @@
                             {tips.map((tip, index) => (
                                 <motion.div
                                     key={index}
-                                    initial={{ opacity: 0, y: 30 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: index * 0.1 }}
-                                    className={`ai-tip-card glass p-6 rounded-2xl hover:border-${tip.color}-500/30 transition-all group relative overflow-hidden float-animation`}
-                                    style={{ animationDelay: `${index * 0.5}s` }}
+                                    initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    transition={{ delay: index * 0.15, type: "spring", stiffness: 100 }}
+                                    whileHover={{ scale: 1.05, y: -10, transition: { duration: 0.3 } }}
+                                    className="tip-card glass p-6 rounded-2xl hover:border-indigo-500/30 transition-all group cursor-pointer"
                                 >
-                                    <div className="ai-tip-glow"></div>
-                                    <div className={`w-12 h-12 rounded-xl bg-${tip.color}-500/20 flex items-center justify-center mb-4 ai-tip-icon`}>
-                                        <Icon name={tip.icon} size={24} className={`text-${tip.color}-400`} />
+                                    <div className="flex items-start gap-4">
+                                        <motion.div 
+                                            className={`tip-icon-container w-14 h-14 rounded-xl bg-${tip.color}-500/20 flex items-center justify-center flex-shrink-0`}
+                                            whileHover={{ rotate: 360 }}
+                                            transition={{ duration: 0.6 }}
+                                        >
+                                            <Icon name={tip.icon} size={24} className={`text-${tip.color}-400 relative z-10`} />
+                                        </motion.div>
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <span className={`tip-number text-xs font-bold text-${tip.color}-400`}>{tip.number}</span>
+                                                <h3 className="text-white font-semibold">{tip.title}</h3>
+                                            </div>
+                                            <p className="text-gray-400 text-sm leading-relaxed">{tip.desc}</p>
+                                        </div>
                                     </div>
-                                    <h3 className="text-white font-semibold mb-2">{tip.title}</h3>
-                                    <p className="text-gray-400 text-sm leading-relaxed">{tip.desc}</p>
                                     
-                                    {/* Animated border */}
-                                    <div className={`absolute bottom-0 left-0 h-1 bg-${tip.color}-500 transition-all duration-300 w-0 group-hover:w-full`}></div>
+                                    <motion.div 
+                                        className="mt-4 h-1 bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                        initial={{ scaleX: 0 }}
+                                        whileHover={{ scaleX: 1 }}
+                                    />
                                 </motion.div>
                             ))}
-                        </div>
-                    </div>
-                </motion.div>
-            );
-        };
-        
-        const LiveStats = () => {
-            const [stats, setStats] = useState({
-                visitors: 0,
-                registered: 0,
-                online: 0
-            });
-
-            useEffect(() => {
-                const updateStats = () => {
-                    const users = JSON.parse(localStorage.getItem('aura_users') || '[]');
-                    const visitCount = parseInt(localStorage.getItem('aura_visit_count') || '0');
-                    
-                    setStats({
-                        visitors: visitCount,
-                        registered: users.length,
-                        online: Math.floor(Math.random() * 15) + 5
-                    });
-                };
-
-                updateStats();
-                const interval = setInterval(updateStats, 30000);
-                
-                return () => clearInterval(interval);
-            }, []);
-
-            return (
-                <motion.div 
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="py-8 px-4"
-                >
-                    <div className="max-w-4xl mx-auto glass-strong rounded-2xl p-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-white font-semibold flex items-center gap-2">
-                                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                                Live Statistics
-                            </h3>
-                            <span className="text-xs text-gray-500">Real-time updates</span>
-                        </div>
-                        <div className="grid grid-cols-3 gap-4">
-                            <motion.div 
-                                className="text-center p-4 rounded-xl bg-gray-800/30"
-                                whileHover={{ scale: 1.05 }}
-                            >
-                                <div className="text-2xl font-bold text-indigo-400">{stats.visitors}</div>
-                                <div className="text-xs text-gray-400">Total Visitors</div>
-                            </motion.div>
-                            <motion.div 
-                                className="text-center p-4 rounded-xl bg-gray-800/30"
-                                whileHover={{ scale: 1.05 }}
-                            >
-                                <div className="text-2xl font-bold text-purple-400">{stats.registered}</div>
-                                <div className="text-xs text-gray-400">Registered Students</div>
-                            </motion.div>
-                            <motion.div 
-                                className="text-center p-4 rounded-xl bg-gray-800/30"
-                                whileHover={{ scale: 1.05 }}
-                            >
-                                <div className="text-2xl font-bold text-green-400">{stats.online}</div>
-                                <div className="text-xs text-gray-400">Online Now</div>
-                            </motion.div>
                         </div>
                     </div>
                 </motion.div>
@@ -1671,15 +1691,9 @@
         
         const Profile = ({ onLogout }) => {
             const { user, updateUser } = useContext(AuthContext);
-            const [isEditing, setIsEditing] = useState(false);
-            const [formData, setFormData] = useState({
-                name: user?.name || '',
-                phone: user?.phone || ''
-            });
             const [previewImage, setPreviewImage] = useState(user?.profilePicture || null);
             const [isUploading, setIsUploading] = useState(false);
             const [showPassword, setShowPassword] = useState(false);
-            const fileInputRef = useRef(null);
             
             const handleImageChange = (e) => {
                 const file = e.target.files[0];
@@ -1689,32 +1703,33 @@
                     reader.onloadend = () => {
                         setPreviewImage(reader.result);
                         setIsUploading(false);
+                        
+                        // Auto save when image is selected
+                        const updatedUser = { ...user, profilePicture: reader.result };
+                        const users = JSON.parse(localStorage.getItem('aura_users') || '[]');
+                        const userIndex = users.findIndex(u => u.email === user.email);
+                        if (userIndex !== -1) {
+                            users[userIndex] = updatedUser;
+                            localStorage.setItem('aura_users', JSON.stringify(users));
+                        }
+                        localStorage.setItem('aura_current_user', JSON.stringify(updatedUser));
+                        updateUser(updatedUser);
                     };
                     reader.readAsDataURL(file);
                 }
             };
             
-            const handleGalleryClick = () => {
-                fileInputRef.current?.click();
-            };
-            
-            const handleSave = () => {
-                const updatedUser = { ...user, ...formData, profilePicture: previewImage };
-                
+            const handleRemovePhoto = () => {
+                setPreviewImage(null);
+                const updatedUser = { ...user, profilePicture: null };
                 const users = JSON.parse(localStorage.getItem('aura_users') || '[]');
                 const userIndex = users.findIndex(u => u.email === user.email);
                 if (userIndex !== -1) {
                     users[userIndex] = updatedUser;
                     localStorage.setItem('aura_users', JSON.stringify(users));
                 }
-                
                 localStorage.setItem('aura_current_user', JSON.stringify(updatedUser));
                 updateUser(updatedUser);
-                setIsEditing(false);
-            };
-
-            const handleRemovePhoto = () => {
-                setPreviewImage(null);
             };
             
             return (
@@ -1727,12 +1742,11 @@
                         >
                             <div className="text-center mb-8">
                                 <div className="relative inline-block">
-                                    motion.div 
-                                        className="w-32 h-32 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 p-1 mx-auto relative cursor-pointer"
+                                    <motion.div 
+                                        className="w-32 h-32 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 p-1 mx-auto relative"
                                         whileHover={{ scale: 1.05 }}
-                                        onClick={isEditing ? handleGalleryClick : undefined}
                                     >
-                                        <div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center overflow-hidden relative">
+                                        <div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center overflow-hidden">
                                             {previewImage ? (
                                                 <img src={previewImage} alt="Profile" className="w-full h-full object-cover" />
                                             ) : (
@@ -1749,41 +1763,26 @@
                                                     </motion.div>
                                                 </div>
                                             )}
-                                            
-                                            {isEditing && (
-                                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                                                    <Icon name="camera" size={32} className="text-white" />
-                                                </div>
-                                            )}
                                         </div>
+                                        {/* Green glow ring */}
                                         <div className="photo-glow-ring"></div>
                                     </motion.div>
                                     
-                                    {isEditing && (
-                                        <div className="absolute bottom-0 right-0 flex gap-2">
-                                            <button 
-                                                onClick={handleGalleryClick}
-                                                className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-indigo-700 transition-colors shadow-lg"
+                                    {/* Gallery Upload Button */}
+                                    <div className="absolute bottom-0 right-0 flex gap-2">
+                                        <label className="gallery-upload w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-indigo-700 transition-colors shadow-lg">
+                                            <Icon name="image" size={20} className="text-white" />
+                                            <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+                                        </label>
+                                        {previewImage && (
+                                            <button
+                                                onClick={handleRemovePhoto}
+                                                className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-red-700 transition-colors shadow-lg"
                                             >
-                                                <Icon name="image" size={20} className="text-white" />
+                                                <Icon name="trash-2" size={18} className="text-white" />
                                             </button>
-                                            <input 
-                                                type="file" 
-                                                ref={fileInputRef}
-                                                accept="image/*" 
-                                                className="hidden" 
-                                                onChange={handleImageChange} 
-                                            />
-                                            {previewImage && (
-                                                <button
-                                                    onClick={handleRemovePhoto}
-                                                    className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-red-700 transition-colors shadow-lg"
-                                                >
-                                                    <Icon name="trash-2" size={18} className="text-white" />
-                                                </button>
-                                            )}
-                                        </div>
-                                    )}
+                                        )}
+                                    </div>
                                 </div>
                                 <h2 className="text-2xl font-bold text-white mt-4">{user?.name}</h2>
                                 <p className="text-gray-400">{user?.email}</p>
@@ -1802,19 +1801,10 @@
                                     transition={{ delay: 0.1 }}
                                 >
                                     <label className="block text-gray-400 text-sm mb-2">Full Name</label>
-                                    {isEditing ? (
-                                        <input 
-                                            type="text" 
-                                            className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:border-indigo-500 focus:outline-none transition-all"
-                                            value={formData.name}
-                                            onChange={(e) => setFormData({...formData, name: e.target.value})}
-                                        />
-                                    ) : (
-                                        <div className="px-4 py-3 rounded-xl bg-gray-800/30 text-white flex items-center gap-3">
-                                            <Icon name="user" size={18} className="text-gray-500" />
-                                            {user?.name}
-                                        </div>
-                                    )}
+                                    <div className="px-4 py-3 rounded-xl bg-gray-800/30 text-white flex items-center gap-3">
+                                        <Icon name="user" size={18} className="text-gray-500" />
+                                        {user?.name}
+                                    </div>
                                 </motion.div>
                                 
                                 <motion.div
@@ -1835,21 +1825,13 @@
                                     transition={{ delay: 0.3 }}
                                 >
                                     <label className="block text-gray-400 text-sm mb-2">Phone</label>
-                                    {isEditing ? (
-                                        <input 
-                                            type="tel" 
-                                            className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:border-indigo-500 focus:outline-none transition-all"
-                                            value={formData.phone}
-                                            onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                                        />
-                                    ) : (
-                                        <div className="px-4 py-3 rounded-xl bg-gray-800/30 text-white flex items-center gap-3">
-                                            <Icon name="phone" size={18} className="text-gray-500" />
-                                            {user?.phone}
-                                        </div>
-                                    )}
+                                    <div className="px-4 py-3 rounded-xl bg-gray-800/30 text-white flex items-center gap-3">
+                                        <Icon name="phone" size={18} className="text-gray-500" />
+                                        {user?.phone}
+                                    </div>
                                 </motion.div>
                                 
+                                {/* Password Display */}
                                 <motion.div
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
@@ -1886,51 +1868,15 @@
                             </div>
                             
                             <div className="flex gap-3 mt-8">
-                                {isEditing ? (
-                                    <>
-                                        <motion.button 
-                                            onClick={() => {
-                                                setIsEditing(false);
-                                                setPreviewImage(user?.profilePicture || null);
-                                                setFormData({ name: user?.name || '', phone: user?.phone || '' });
-                                            }}
-                                            className="flex-1 py-3 glass text-white rounded-xl font-medium hover:bg-white/10 transition-all"
-                                            whileHover={{ scale: 1.02 }}
-                                            whileTap={{ scale: 0.98 }}
-                                        >
-                                            Cancel
-                                        </motion.button>
-                                        <motion.button 
-                                            onClick={handleSave}
-                                            className="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg transition-all"
-                                            whileHover={{ scale: 1.02 }}
-                                            whileTap={{ scale: 0.98 }}
-                                        >
-                                            Save Changes
-                                        </motion.button>
-                                    </>
-                                ) : (
-                                    <>
-                                        <motion.button 
-                                            onClick={() => setIsEditing(true)}
-                                            className="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2"
-                                            whileHover={{ scale: 1.02 }}
-                                            whileTap={{ scale: 0.98 }}
-                                        >
-                                            <Icon name="edit" size={18} />
-                                            Edit Profile
-                                        </motion.button>
-                                        <motion.button 
-                                            onClick={onLogout}
-                                            className="flex-1 py-3 border border-red-500/30 text-red-400 rounded-xl font-medium hover:bg-red-500/10 transition-all flex items-center justify-center gap-2"
-                                            whileHover={{ scale: 1.02 }}
-                                            whileTap={{ scale: 0.98 }}
-                                        >
-                                            <Icon name="log-out" size={18} />
-                                            Logout
-                                        </motion.button>
-                                    </>
-                                )}
+                                <motion.button 
+                                    onClick={onLogout}
+                                    className="flex-1 py-3 border border-red-500/30 text-red-400 rounded-xl font-medium hover:bg-red-500/10 transition-all flex items-center justify-center gap-2"
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                >
+                                    <Icon name="log-out" size={18} />
+                                    Logout
+                                </motion.button>
                             </div>
                         </motion.div>
                     </div>
@@ -1998,6 +1944,7 @@
             const [showUnlockAnimation, setShowUnlockAnimation] = useState(false);
             const [newlyUnlocked, setNewlyUnlocked] = useState(false);
             
+            // Dynamic lesson count - easily add more lessons here
             const modules = [
                 { 
                     title: 'AI Foundations - Basic Lessons', 
@@ -2413,10 +2360,6 @@
                                                                 allow="autoplay; encrypted-media"
                                                                 allowFullScreen
                                                                 title={activeLesson.title}
-                                                                style={{ 
-                                                                    imageRendering: '-webkit-optimize-contrast',
-                                                                    imageRendering: 'crisp-edges'
-                                                                }}
                                                             ></iframe>
                                                         )}
                                                     </>
@@ -2555,9 +2498,7 @@
                     setIntroCompleted(true);
                 }
                 
-                const visitCount = parseInt(localStorage.getItem('aura_visit_count') || '0');
-                localStorage.setItem('aura_visit_count', (visitCount + 1).toString());
-                
+                // Check if user is already logged in (persist across sessions)
                 const savedUser = localStorage.getItem('aura_current_user');
                 
                 if (savedUser) {
@@ -2565,9 +2506,15 @@
                     const deviceBindings = JSON.parse(localStorage.getItem('aura_device_bindings') || '{}');
                     const currentDevice = getDeviceFingerprint();
                     
-                    if (deviceBindings[userData.email] === currentDevice) {
+                    // Only check device if explicitly bound, otherwise allow login
+                    if (!deviceBindings[userData.email] || deviceBindings[userData.email] === currentDevice) {
                         setUser(userData);
                         setIsLoggedIn(true);
+                        // Update device binding if not set
+                        if (!deviceBindings[userData.email]) {
+                            deviceBindings[userData.email] = currentDevice;
+                            localStorage.setItem('aura_device_bindings', JSON.stringify(deviceBindings));
+                        }
                     } else {
                         localStorage.removeItem('aura_current_user');
                     }
@@ -2613,7 +2560,6 @@
                             <>
                                 <Hero />
                                 <AITips />
-                                <LiveStats />
                             </>
                         );
                     case 'auth':
@@ -2661,8 +2607,8 @@
                                             className="glass p-6 rounded-2xl hover:border-purple-500/50 transition-all"
                                             whileHover={{ scale: 1.05, y: -5 }}
                                         >
-                                            <div className="text-3xl font-bold text-white mb-2">500+</div>
-                                            <div className="text-gray-400">Students</div>
+                                            <div className="text-3xl font-bold text-white mb-2">100%</div>
+                                            <div className="text-gray-400">Sinhala Medium</div>
                                         </motion.div>
                                         <motion.div 
                                             initial={{ opacity: 0, y: 20 }}
@@ -2671,8 +2617,8 @@
                                             className="glass p-6 rounded-2xl hover:border-pink-500/50 transition-all"
                                             whileHover={{ scale: 1.05, y: -5 }}
                                         >
-                                            <div className="text-3xl font-bold text-white mb-2">100%</div>
-                                            <div className="text-gray-400">Sinhala Medium</div>
+                                            <div className="text-3xl font-bold text-white mb-2">24/7</div>
+                                            <div className="text-gray-400">Support</div>
                                         </motion.div>
                                     </div>
                                 </div>
