@@ -721,6 +721,102 @@
             window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
         };
         
+        // IndexedDB Helper Functions for Persistent Storage
+        const DB_NAME = 'AuraAIDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'users';
+        
+        const openDB = () => {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => resolve(request.result);
+                
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME, { keyPath: 'email' });
+                    }
+                };
+            });
+        };
+        
+        const saveUserToDB = async (userData) => {
+            try {
+                const db = await openDB();
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                await store.put(userData);
+                return true;
+            } catch (error) {
+                console.error('Error saving to IndexedDB:', error);
+                return false;
+            }
+        };
+        
+        const getUserFromDB = async (email) => {
+            try {
+                const db = await openDB();
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                return new Promise((resolve, reject) => {
+                    const request = store.get(email);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            } catch (error) {
+                console.error('Error reading from IndexedDB:', error);
+                return null;
+            }
+        };
+        
+        const getAllUsersFromDB = async () => {
+            try {
+                const db = await openDB();
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                return new Promise((resolve, reject) => {
+                    const request = store.getAll();
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            } catch (error) {
+                console.error('Error reading all from IndexedDB:', error);
+                return [];
+            }
+        };
+        
+        const removeUserFromDB = async (email) => {
+            try {
+                const db = await openDB();
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                await store.delete(email);
+                return true;
+            } catch (error) {
+                console.error('Error removing from IndexedDB:', error);
+                return false;
+            }
+        };
+        
+        // Cookie Helper Functions (additional backup)
+        const setCookie = (name, value, days = 365) => {
+            const expires = new Date(Date.now() + days * 864e5).toUTCString();
+            document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires + '; path=/; SameSite=Strict';
+        };
+        
+        const getCookie = (name) => {
+            return document.cookie.split('; ').reduce((r, v) => {
+                const parts = v.split('=');
+                return parts[0] === name ? decodeURIComponent(parts[1]) : r;
+            }, '');
+        };
+        
+        const removeCookie = (name) => {
+            setCookie(name, '', -1);
+        };
+        
         // AI Introduction Animation Component
         const AIIntroAnimation = ({ onComplete }) => {
             const [text, setText] = useState('');
@@ -1263,9 +1359,13 @@
                         return false;
                     }
                     
-                    const users = JSON.parse(localStorage.getItem('aura_users') || '[]');
-                    const emailExists = users.find(u => u.email === formData.email);
-                    const phoneExists = users.find(u => u.phone === formData.phone);
+                    // Check all storage locations for existing user
+                    const localUsers = JSON.parse(localStorage.getItem('aura_users') || '[]');
+                    const dbUsers = await getAllUsersFromDB();
+                    const allUsers = [...localUsers, ...dbUsers];
+                    
+                    const emailExists = allUsers.find(u => u.email === formData.email);
+                    const phoneExists = allUsers.find(u => u.phone === formData.phone);
                     
                     if (emailExists) {
                         setError('This email is already registered');
@@ -1311,9 +1411,17 @@
                             profilePicture: null
                         };
                         
-                        const users = JSON.parse(localStorage.getItem('aura_users') || '[]');
-                        users.push(userData);
-                        localStorage.setItem('aura_users', JSON.stringify(users));
+                        // Save to all storage mechanisms
+                        const localUsers = JSON.parse(localStorage.getItem('aura_users') || '[]');
+                        localUsers.push(userData);
+                        localStorage.setItem('aura_users', JSON.stringify(localUsers));
+                        
+                        // Save to IndexedDB
+                        await saveUserToDB(userData);
+                        
+                        // Save to cookies
+                        setCookie('aura_current_email', userData.email);
+                        setCookie('aura_auth_token', btoa(userData.email + ':' + userData.password));
                         
                         const deviceBindings = JSON.parse(localStorage.getItem('aura_device_bindings') || '{}');
                         deviceBindings[formData.email] = deviceId;
@@ -1536,8 +1644,12 @@
                 setShowDeviceWarning(false);
                 setIsLoading(true);
                 
-                const users = JSON.parse(localStorage.getItem('aura_users') || '[]');
-                const user = users.find(u => u.email === formData.email);
+                // Check all storage locations
+                const localUsers = JSON.parse(localStorage.getItem('aura_users') || '[]');
+                const dbUsers = await getAllUsersFromDB();
+                const allUsers = [...localUsers, ...dbUsers];
+                
+                const user = allUsers.find(u => u.email === formData.email);
                 
                 if (!user) {
                     setError('Email not registered. Please register first.');
@@ -1565,11 +1677,19 @@
                 deviceBindings[formData.email] = currentDevice;
                 localStorage.setItem('aura_device_bindings', JSON.stringify(deviceBindings));
                 
-                const userIndex = users.findIndex(u => u.email === formData.email);
+                // Update user in all storage
+                const userIndex = localUsers.findIndex(u => u.email === formData.email);
                 if (userIndex !== -1) {
-                    users[userIndex].deviceId = currentDevice;
-                    localStorage.setItem('aura_users', JSON.stringify(users));
+                    localUsers[userIndex].deviceId = currentDevice;
+                    localStorage.setItem('aura_users', JSON.stringify(localUsers));
                 }
+                
+                // Save to IndexedDB
+                await saveUserToDB({...user, deviceId: currentDevice});
+                
+                // Save cookies
+                setCookie('aura_current_email', user.email);
+                setCookie('aura_auth_token', btoa(user.email + ':' + user.password));
                 
                 setIsLoading(false);
                 onSuccess(user);
@@ -1706,12 +1826,22 @@
                         
                         // Auto save when image is selected
                         const updatedUser = { ...user, profilePicture: reader.result };
+                        
+                        // Update localStorage
                         const users = JSON.parse(localStorage.getItem('aura_users') || '[]');
                         const userIndex = users.findIndex(u => u.email === user.email);
                         if (userIndex !== -1) {
                             users[userIndex] = updatedUser;
                             localStorage.setItem('aura_users', JSON.stringify(users));
                         }
+                        
+                        // Update IndexedDB
+                        saveUserToDB(updatedUser);
+                        
+                        // Update cookies
+                        setCookie('aura_current_email', updatedUser.email);
+                        setCookie('aura_auth_token', btoa(updatedUser.email + ':' + updatedUser.password));
+                        
                         localStorage.setItem('aura_current_user', JSON.stringify(updatedUser));
                         updateUser(updatedUser);
                     };
@@ -1722,12 +1852,18 @@
             const handleRemovePhoto = () => {
                 setPreviewImage(null);
                 const updatedUser = { ...user, profilePicture: null };
+                
                 const users = JSON.parse(localStorage.getItem('aura_users') || '[]');
                 const userIndex = users.findIndex(u => u.email === user.email);
                 if (userIndex !== -1) {
                     users[userIndex] = updatedUser;
                     localStorage.setItem('aura_users', JSON.stringify(users));
                 }
+                
+                saveUserToDB(updatedUser);
+                setCookie('aura_current_email', updatedUser.email);
+                setCookie('aura_auth_token', btoa(updatedUser.email + ':' + updatedUser.password));
+                
                 localStorage.setItem('aura_current_user', JSON.stringify(updatedUser));
                 updateUser(updatedUser);
             };
@@ -2488,6 +2624,7 @@
             const [isLoggedIn, setIsLoggedIn] = useState(false);
             const [showIntro, setShowIntro] = useState(true);
             const [introCompleted, setIntroCompleted] = useState(false);
+            const [isLoading, setIsLoading] = useState(true);
             
             useEffect(() => {
                 initParticles();
@@ -2498,33 +2635,92 @@
                     setIntroCompleted(true);
                 }
                 
-                // Check if user is already logged in (persist across sessions using localStorage)
-                const savedUser = localStorage.getItem('aura_current_user');
-                
-                if (savedUser) {
+                // Check login status from multiple storage mechanisms
+                const checkLoginStatus = async () => {
                     try {
-                        const userData = JSON.parse(savedUser);
-                        const deviceBindings = JSON.parse(localStorage.getItem('aura_device_bindings') || '{}');
-                        const currentDevice = getDeviceFingerprint();
+                        // Try localStorage first
+                        const savedUser = localStorage.getItem('aura_current_user');
                         
-                        // Check device binding - if same device or no binding yet, allow auto-login
-                        if (!deviceBindings[userData.email] || deviceBindings[userData.email] === currentDevice) {
-                            setUser(userData);
-                            setIsLoggedIn(true);
-                            // Update device binding if not set
+                        // Try cookies as backup
+                        const cookieEmail = getCookie('aura_current_email');
+                        const cookieToken = getCookie('aura_auth_token');
+                        
+                        // Try IndexedDB as final backup
+                        const dbUsers = await getAllUsersFromDB();
+                        
+                        let userData = null;
+                        
+                        if (savedUser) {
+                            try {
+                                userData = JSON.parse(savedUser);
+                            } catch (e) {
+                                console.error('Error parsing localStorage user:', e);
+                            }
+                        }
+                        
+                        // If no localStorage but cookies exist, try to restore
+                        if (!userData && cookieEmail && cookieToken) {
+                            const dbUser = dbUsers.find(u => u.email === cookieEmail);
+                            if (dbUser) {
+                                const expectedToken = btoa(dbUser.email + ':' + dbUser.password);
+                                if (cookieToken === expectedToken) {
+                                    userData = dbUser;
+                                    // Restore localStorage
+                                    localStorage.setItem('aura_current_user', JSON.stringify(dbUser));
+                                }
+                            }
+                        }
+                        
+                        // If still no user but DB has users, check device binding
+                        if (!userData && dbUsers.length > 0) {
+                            const currentDevice = getDeviceFingerprint();
+                            const deviceBindings = JSON.parse(localStorage.getItem('aura_device_bindings') || '{}');
+                            
+                            for (const dbUser of dbUsers) {
+                                if (deviceBindings[dbUser.email] === currentDevice) {
+                                    userData = dbUser;
+                                    localStorage.setItem('aura_current_user', JSON.stringify(dbUser));
+                                    setCookie('aura_current_email', dbUser.email);
+                                    setCookie('aura_auth_token', btoa(dbUser.email + ':' + dbUser.password));
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        if (userData) {
+                            const deviceBindings = JSON.parse(localStorage.getItem('aura_device_bindings') || '{}');
+                            const currentDevice = getDeviceFingerprint();
+                            
+                            // Verify device or create binding if not exists
                             if (!deviceBindings[userData.email]) {
                                 deviceBindings[userData.email] = currentDevice;
                                 localStorage.setItem('aura_device_bindings', JSON.stringify(deviceBindings));
                             }
-                        } else {
-                            // Different device - clear login
-                            localStorage.removeItem('aura_current_user');
+                            
+                            if (deviceBindings[userData.email] === currentDevice) {
+                                setUser(userData);
+                                setIsLoggedIn(true);
+                                
+                                // Ensure all storage is in sync
+                                localStorage.setItem('aura_current_user', JSON.stringify(userData));
+                                await saveUserToDB(userData);
+                                setCookie('aura_current_email', userData.email);
+                                setCookie('aura_auth_token', btoa(userData.email + ':' + userData.password));
+                            } else {
+                                // Different device - clear everything
+                                localStorage.removeItem('aura_current_user');
+                                removeCookie('aura_current_email');
+                                removeCookie('aura_auth_token');
+                            }
                         }
-                    } catch (e) {
-                        console.error('Error parsing saved user:', e);
-                        localStorage.removeItem('aura_current_user');
+                    } catch (error) {
+                        console.error('Error checking login status:', error);
+                    } finally {
+                        setIsLoading(false);
                     }
-                }
+                };
+                
+                checkLoginStatus();
                 
                 const handleNav = (e) => {
                     const page = e.detail;
@@ -2541,18 +2737,32 @@
                 sessionStorage.setItem('aura_intro_shown', 'true');
             };
             
-            const handleLogin = (userData) => {
+            const handleLogin = async (userData) => {
                 setUser(userData);
                 setIsLoggedIn(true);
+                
+                // Save to all storage mechanisms
                 localStorage.setItem('aura_current_user', JSON.stringify(userData));
+                await saveUserToDB(userData);
+                setCookie('aura_current_email', userData.email);
+                setCookie('aura_auth_token', btoa(userData.email + ':' + userData.password));
+                
                 setCurrentPage('dashboard');
             };
             
-            const handleLogout = () => {
+            const handleLogout = async () => {
                 // Only logout when explicitly clicking logout button
+                // Clear all storage mechanisms
+                localStorage.removeItem('aura_current_user');
+                removeCookie('aura_current_email');
+                removeCookie('aura_auth_token');
+                
+                if (user?.email) {
+                    await removeUserFromDB(user.email);
+                }
+                
                 setUser(null);
                 setIsLoggedIn(false);
-                localStorage.removeItem('aura_current_user');
                 setCurrentPage('home');
             };
             
@@ -2635,6 +2845,18 @@
                         return <Hero />;
                 }
             };
+            
+            if (isLoading) {
+                return (
+                    <div className="min-h-screen flex items-center justify-center bg-aura-darker">
+                        <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ repeat: Infinity, duration: 1 }}
+                            className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full"
+                        />
+                    </div>
+                );
+            }
             
             return (
                 <AuthContext.Provider value={{ user, isLoggedIn, logout: handleLogout, updateUser }}>
