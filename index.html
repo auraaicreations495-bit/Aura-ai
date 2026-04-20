@@ -109,7 +109,6 @@
             -ms-user-select: none;
         }
         
-        /* Prevent screenshots and screen recording */
         @media print {
             body { display: none !important; }
         }
@@ -152,7 +151,6 @@
             text-align: center;
         }
         
-        /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -236,7 +234,6 @@
             100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
         }
 
-        /* AI Intro Animation Styles */
         .ai-intro-container {
             position: fixed;
             top: 0;
@@ -325,7 +322,6 @@
             animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
         }
 
-        /* Photo glow animation */
         .photo-glow-ring {
             position: absolute;
             inset: -4px;
@@ -373,7 +369,6 @@
             box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
         }
 
-        /* Anti-screenshot overlay */
         .anti-screenshot {
             position: relative;
         }
@@ -392,7 +387,6 @@
             z-index: 100;
         }
         
-        /* AI Tips Animation Styles */
         .tip-icon-container {
             position: relative;
             overflow: hidden;
@@ -461,7 +455,6 @@
             animation: spin-slow 10s linear infinite;
         }
         
-        /* Security overlay */
         .security-overlay {
             position: fixed;
             top: 0;
@@ -479,7 +472,6 @@
             );
         }
         
-        /* Gallery upload styles */
         .gallery-upload {
             position: relative;
             cursor: pointer;
@@ -509,13 +501,8 @@
         const { useState, useEffect, useRef, createContext, useContext } = React;
         const { motion, AnimatePresence } = window.Motion;
         
-        // Auth Context
         const AuthContext = createContext(null);
-        
-        // Fixed Secret Key for Aura AI
         const FIXED_SECRET_KEY = 'AURAAICREION4VIP';
-        
-        // Base32 decoding for TOTP
         const base32Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
         
         const base32Decode = (input) => {
@@ -540,7 +527,6 @@
             return new Uint8Array(result);
         };
         
-        // HMAC-SHA1 implementation
         const hmacSha1 = async (key, message) => {
             const cryptoKey = await crypto.subtle.importKey(
                 'raw',
@@ -553,25 +539,19 @@
             return new Uint8Array(signature);
         };
         
-        // Generate TOTP using proper RFC 6238 algorithm
         const generateTOTP = async (secret, timeStep = null) => {
             try {
                 const step = timeStep || Math.floor(Date.now() / 30000);
-                
                 const timeBuffer = new ArrayBuffer(8);
                 const timeView = new DataView(timeBuffer);
                 timeView.setUint32(4, step, false);
-                
                 const keyBytes = base32Decode(secret);
-                
                 const hmac = await hmacSha1(keyBytes, timeBuffer);
-                
                 const offset = hmac[hmac.length - 1] & 0x0F;
                 const binary = ((hmac[offset] & 0x7F) << 24) |
                                ((hmac[offset + 1] & 0xFF) << 16) |
                                ((hmac[offset + 2] & 0xFF) << 8) |
                                (hmac[offset + 3] & 0xFF);
-                
                 const otp = binary % 1000000;
                 return otp.toString().padStart(6, '0');
             } catch (error) {
@@ -584,13 +564,11 @@
             const step = timeStep || Math.floor(Date.now() / 30000);
             let hash = 0;
             const combined = secret + step;
-            
             for (let i = 0; i < combined.length; i++) {
                 const char = combined.charCodeAt(i);
                 hash = ((hash << 5) - hash) + char;
                 hash = hash & hash;
             }
-            
             const code = Math.abs(hash % 1000000);
             return code.toString().padStart(6, '0');
         };
@@ -619,19 +597,16 @@
             return 'device_' + Math.abs(hash).toString(16);
         };
         
-        // Email validation
         const isValidEmail = (email) => {
             const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             return re.test(email);
         };
         
-        // Phone validation (Sri Lankan format)
         const isValidPhone = (phone) => {
             const re = /^(07\d{8}|\+94\d{9})$/;
             return re.test(phone.replace(/\s/g, ''));
         };
         
-        // Particle Background
         const initParticles = () => {
             const canvas = document.getElementById('canvas-container');
             const ctx = canvas.getContext('2d');
@@ -721,7 +696,6 @@
             window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
         };
         
-        // IndexedDB Helper Functions for Persistent Storage
         const DB_NAME = 'AuraAIDB';
         const DB_VERSION = 1;
         const STORE_NAME = 'users';
@@ -729,10 +703,8 @@
         const openDB = () => {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open(DB_NAME, DB_VERSION);
-                
                 request.onerror = () => reject(request.error);
                 request.onsuccess = () => resolve(request.result);
-                
                 request.onupgradeneeded = (event) => {
                     const db = event.target.result;
                     if (!db.objectStoreNames.contains(STORE_NAME)) {
@@ -800,7 +772,6 @@
             }
         };
         
-        // Cookie Helper Functions (additional backup)
         const setCookie = (name, value, days = 365) => {
             const expires = new Date(Date.now() + days * 864e5).toUTCString();
             document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires + '; path=/; SameSite=Strict';
@@ -817,11 +788,9 @@
             setCookie(name, '', -1);
         };
         
-        // AI Introduction Animation Component
         const AIIntroAnimation = ({ onComplete }) => {
             const [text, setText] = useState('');
             const [showContent, setShowContent] = useState(false);
-            const [phase, setPhase] = useState(0);
             const fullText = "Welcome to the Future of Learning";
             
             useEffect(() => {
@@ -836,17 +805,12 @@
                     }
                 }, 100);
 
-                const phaseTimer = setTimeout(() => {
-                    setPhase(1);
-                }, 3000);
-
                 const completeTimer = setTimeout(() => {
                     onComplete();
                 }, 5500);
 
                 return () => {
                     clearInterval(typingInterval);
-                    clearTimeout(phaseTimer);
                     clearTimeout(completeTimer);
                 };
             }, [onComplete]);
@@ -1022,10 +986,11 @@
             const handleNav = (id) => {
                 if (navItems.find(item => item.id === id)?.protected && !isLoggedIn) {
                     setCurrentPage('auth');
+                    window.dispatchEvent(new CustomEvent('navigate', { detail: 'auth' }));
                 } else {
                     setCurrentPage(id);
+                    window.dispatchEvent(new CustomEvent('navigate', { detail: id }));
                 }
-                window.dispatchEvent(new CustomEvent('navigate', { detail: id }));
             };
             
             return (
@@ -1203,7 +1168,6 @@
             );
         };
         
-        // AI Tips Component with Animations
         const AITips = () => {
             const tips = [
                 {
@@ -1256,7 +1220,6 @@
                     animate={{ opacity: 1 }}
                     className="py-16 px-4 relative overflow-hidden"
                 >
-                    {/* Floating Orbs */}
                     <div className="floating-orb w-64 h-64 bg-indigo-600/20 top-20 left-10" style={{ animationDelay: '0s' }}></div>
                     <div className="floating-orb w-48 h-48 bg-purple-600/20 bottom-20 right-10" style={{ animationDelay: '2s' }}></div>
                     <div className="floating-orb w-32 h-32 bg-pink-600/20 top-1/2 left-1/2" style={{ animationDelay: '4s' }}></div>
@@ -1359,7 +1322,6 @@
                         return false;
                     }
                     
-                    // Check all storage locations for existing user
                     const localUsers = JSON.parse(localStorage.getItem('aura_users') || '[]');
                     const dbUsers = await getAllUsersFromDB();
                     const allUsers = [...localUsers, ...dbUsers];
@@ -1411,15 +1373,12 @@
                             profilePicture: null
                         };
                         
-                        // Save to all storage mechanisms
                         const localUsers = JSON.parse(localStorage.getItem('aura_users') || '[]');
                         localUsers.push(userData);
                         localStorage.setItem('aura_users', JSON.stringify(localUsers));
                         
-                        // Save to IndexedDB
                         await saveUserToDB(userData);
                         
-                        // Save to cookies
                         setCookie('aura_current_email', userData.email);
                         setCookie('aura_auth_token', btoa(userData.email + ':' + userData.password));
                         
@@ -1479,11 +1438,7 @@
                         <div className="space-y-4">
                             {step === 1 && (
                                 <>
-                                    <motion.div
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: 0.1 }}
-                                    >
+                                    <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
                                         <label className="block text-gray-400 text-sm mb-2">Full Name *</label>
                                         <input 
                                             type="text" 
@@ -1493,11 +1448,7 @@
                                             onChange={(e) => setFormData({...formData, name: e.target.value})}
                                         />
                                     </motion.div>
-                                    <motion.div
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: 0.2 }}
-                                    >
+                                    <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
                                         <label className="block text-gray-400 text-sm mb-2">Email *</label>
                                         <input 
                                             type="email" 
@@ -1507,11 +1458,7 @@
                                             onChange={(e) => setFormData({...formData, email: e.target.value})}
                                         />
                                     </motion.div>
-                                    <motion.div
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: 0.3 }}
-                                    >
+                                    <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
                                         <label className="block text-gray-400 text-sm mb-2">Phone *</label>
                                         <input 
                                             type="tel" 
@@ -1521,11 +1468,7 @@
                                             onChange={(e) => setFormData({...formData, phone: e.target.value})}
                                         />
                                     </motion.div>
-                                    <motion.div
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: 0.4 }}
-                                    >
+                                    <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
                                         <label className="block text-gray-400 text-sm mb-2">Password *</label>
                                         <input 
                                             type="password" 
@@ -1644,7 +1587,6 @@
                 setShowDeviceWarning(false);
                 setIsLoading(true);
                 
-                // Check all storage locations
                 const localUsers = JSON.parse(localStorage.getItem('aura_users') || '[]');
                 const dbUsers = await getAllUsersFromDB();
                 const allUsers = [...localUsers, ...dbUsers];
@@ -1677,17 +1619,14 @@
                 deviceBindings[formData.email] = currentDevice;
                 localStorage.setItem('aura_device_bindings', JSON.stringify(deviceBindings));
                 
-                // Update user in all storage
                 const userIndex = localUsers.findIndex(u => u.email === formData.email);
                 if (userIndex !== -1) {
                     localUsers[userIndex].deviceId = currentDevice;
                     localStorage.setItem('aura_users', JSON.stringify(localUsers));
                 }
                 
-                // Save to IndexedDB
                 await saveUserToDB({...user, deviceId: currentDevice});
                 
-                // Save cookies
                 setCookie('aura_current_email', user.email);
                 setCookie('aura_auth_token', btoa(user.email + ':' + user.password));
                 
@@ -1741,11 +1680,7 @@
                         )}
                         
                         <form onSubmit={handleLogin} className="space-y-4">
-                            <motion.div
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.1 }}
-                            >
+                            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
                                 <label className="block text-gray-400 text-sm mb-2">Email</label>
                                 <input 
                                     type="email" 
@@ -1756,11 +1691,7 @@
                                     required
                                 />
                             </motion.div>
-                            <motion.div
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.2 }}
-                            >
+                            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
                                 <label className="block text-gray-400 text-sm mb-2">Password</label>
                                 <input 
                                     type="password" 
@@ -1781,10 +1712,7 @@
                             >
                                 {isLoading ? (
                                     <span className="flex items-center justify-center gap-2">
-                                        <motion.span
-                                            animate={{ rotate: 360 }}
-                                            transition={{ repeat: Infinity, duration: 1 }}
-                                        >
+                                        <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
                                             <Icon name="loader" size={18} />
                                         </motion.span>
                                         Logging in...
@@ -1824,10 +1752,8 @@
                         setPreviewImage(reader.result);
                         setIsUploading(false);
                         
-                        // Auto save when image is selected
                         const updatedUser = { ...user, profilePicture: reader.result };
                         
-                        // Update localStorage
                         const users = JSON.parse(localStorage.getItem('aura_users') || '[]');
                         const userIndex = users.findIndex(u => u.email === user.email);
                         if (userIndex !== -1) {
@@ -1835,10 +1761,8 @@
                             localStorage.setItem('aura_users', JSON.stringify(users));
                         }
                         
-                        // Update IndexedDB
                         saveUserToDB(updatedUser);
                         
-                        // Update cookies
                         setCookie('aura_current_email', updatedUser.email);
                         setCookie('aura_auth_token', btoa(updatedUser.email + ':' + updatedUser.password));
                         
@@ -1891,20 +1815,15 @@
                                             
                                             {isUploading && (
                                                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                                    <motion.div
-                                                        animate={{ rotate: 360 }}
-                                                        transition={{ repeat: Infinity, duration: 1 }}
-                                                    >
+                                                    <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
                                                         <Icon name="loader" size={24} className="text-white" />
                                                     </motion.div>
                                                 </div>
                                             )}
                                         </div>
-                                        {/* Green glow ring */}
                                         <div className="photo-glow-ring"></div>
                                     </motion.div>
                                     
-                                    {/* Gallery Upload Button */}
                                     <div className="absolute bottom-0 right-0 flex gap-2">
                                         <label className="gallery-upload w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-indigo-700 transition-colors shadow-lg">
                                             <Icon name="image" size={20} className="text-white" />
@@ -1931,11 +1850,7 @@
                             </div>
                             
                             <div className="space-y-4">
-                                <motion.div
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 0.1 }}
-                                >
+                                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
                                     <label className="block text-gray-400 text-sm mb-2">Full Name</label>
                                     <div className="px-4 py-3 rounded-xl bg-gray-800/30 text-white flex items-center gap-3">
                                         <Icon name="user" size={18} className="text-gray-500" />
@@ -1943,11 +1858,7 @@
                                     </div>
                                 </motion.div>
                                 
-                                <motion.div
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 0.2 }}
-                                >
+                                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
                                     <label className="block text-gray-400 text-sm mb-2">Email</label>
                                     <div className="px-4 py-3 rounded-xl bg-gray-800/30 text-gray-400 flex items-center gap-3">
                                         <Icon name="mail" size={18} className="text-gray-500" />
@@ -1955,11 +1866,7 @@
                                     </div>
                                 </motion.div>
                                 
-                                <motion.div
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 0.3 }}
-                                >
+                                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
                                     <label className="block text-gray-400 text-sm mb-2">Phone</label>
                                     <div className="px-4 py-3 rounded-xl bg-gray-800/30 text-white flex items-center gap-3">
                                         <Icon name="phone" size={18} className="text-gray-500" />
@@ -1967,12 +1874,7 @@
                                     </div>
                                 </motion.div>
                                 
-                                {/* Password Display */}
-                                <motion.div
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 0.35 }}
-                                >
+                                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.35 }}>
                                     <label className="block text-gray-400 text-sm mb-2">Password</label>
                                     <div className="px-4 py-3 rounded-xl bg-gray-800/30 text-white flex items-center gap-3">
                                         <Icon name="lock" size={18} className="text-gray-500" />
@@ -1986,11 +1888,7 @@
                                     </div>
                                 </motion.div>
                                 
-                                <motion.div
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 0.4 }}
-                                >
+                                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
                                     <label className="block text-gray-400 text-sm mb-2">Member Since</label>
                                     <div className="px-4 py-3 rounded-xl bg-gray-800/30 text-gray-400 flex items-center gap-3">
                                         <Icon name="calendar" size={18} className="text-gray-500" />
@@ -2080,7 +1978,6 @@
             const [showUnlockAnimation, setShowUnlockAnimation] = useState(false);
             const [newlyUnlocked, setNewlyUnlocked] = useState(false);
             
-            // Dynamic lesson count - easily add more lessons here
             const modules = [
                 { 
                     title: 'AI Foundations - Basic Lessons', 
@@ -2700,6 +2597,8 @@
                             if (deviceBindings[userData.email] === currentDevice) {
                                 setUser(userData);
                                 setIsLoggedIn(true);
+                                // Auto navigate to dashboard when logged in
+                                setCurrentPage('dashboard');
                                 
                                 // Ensure all storage is in sync
                                 localStorage.setItem('aura_current_user', JSON.stringify(userData));
