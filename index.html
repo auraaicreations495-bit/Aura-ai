@@ -53,6 +53,7 @@
                         'spin-slow': 'spin 8s linear infinite',
                         'orbit': 'orbit 4s linear infinite',
                         'photo-glow': 'photoGlow 2s ease-in-out infinite',
+                        'border-run': 'borderRun 2s linear infinite',
                     },
                     keyframes: {
                         gradient: {
@@ -92,6 +93,10 @@
                         photoGlow: {
                             '0%, 100%': { boxShadow: '0 0 5px #22c55e, 0 0 10px #22c55e, 0 0 15px #22c55e' },
                             '50%': { boxShadow: '0 0 20px #22c55e, 0 0 30px #22c55e, 0 0 40px #22c55e' },
+                        },
+                        borderRun: {
+                            '0%': { backgroundPosition: '0% 50%' },
+                            '100%': { backgroundPosition: '200% 50%' },
                         }
                     }
                 }
@@ -489,6 +494,31 @@
             cursor: pointer;
             width: 100%;
             height: 100%;
+        }
+
+        /* Red Border Animation for Lessons */
+        .lesson-border-glow {
+            position: relative;
+            background: linear-gradient(90deg, #ef4444, #f87171, #ef4444, #dc2626, #ef4444);
+            background-size: 200% 100%;
+            animation: borderRun 2s linear infinite;
+            padding: 2px;
+            border-radius: 0.75rem;
+        }
+
+        .lesson-border-glow-inner {
+            background: rgba(15, 23, 42, 0.95);
+            border-radius: calc(0.75rem - 2px);
+            padding: 0.5rem;
+        }
+
+        @keyframes borderRun {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
+        .lesson-item-wrapper {
+            margin-bottom: 8px;
         }
     </style>
 </head>
@@ -1743,17 +1773,56 @@
             const [isUploading, setIsUploading] = useState(false);
             const [showPassword, setShowPassword] = useState(false);
             
+            // Load profile picture from all storage sources on mount
+            useEffect(() => {
+                const loadProfilePicture = async () => {
+                    // First check current user object
+                    if (user?.profilePicture) {
+                        setPreviewImage(user.profilePicture);
+                        return;
+                    }
+                    
+                    // Check localStorage users array
+                    const users = JSON.parse(localStorage.getItem('aura_users') || '[]');
+                    const localUser = users.find(u => u.email === user?.email);
+                    if (localUser?.profilePicture) {
+                        setPreviewImage(localUser.profilePicture);
+                        // Update context user
+                        updateUser({...user, profilePicture: localUser.profilePicture});
+                        return;
+                    }
+                    
+                    // Check IndexedDB
+                    const dbUser = await getUserFromDB(user?.email);
+                    if (dbUser?.profilePicture) {
+                        setPreviewImage(dbUser.profilePicture);
+                        // Update context user and localStorage
+                        updateUser({...user, profilePicture: dbUser.profilePicture});
+                        if (localUser) {
+                            localUser.profilePicture = dbUser.profilePicture;
+                            localStorage.setItem('aura_users', JSON.stringify(users));
+                        }
+                    }
+                };
+                
+                if (user?.email) {
+                    loadProfilePicture();
+                }
+            }, [user?.email]);
+            
             const handleImageChange = (e) => {
                 const file = e.target.files[0];
                 if (file) {
                     setIsUploading(true);
                     const reader = new FileReader();
                     reader.onloadend = () => {
-                        setPreviewImage(reader.result);
+                        const imageData = reader.result;
+                        setPreviewImage(imageData);
                         setIsUploading(false);
                         
-                        const updatedUser = { ...user, profilePicture: reader.result };
+                        const updatedUser = { ...user, profilePicture: imageData };
                         
+                        // Update localStorage users array
                         const users = JSON.parse(localStorage.getItem('aura_users') || '[]');
                         const userIndex = users.findIndex(u => u.email === user.email);
                         if (userIndex !== -1) {
@@ -1761,12 +1830,17 @@
                             localStorage.setItem('aura_users', JSON.stringify(users));
                         }
                         
+                        // Update aura_current_user
+                        localStorage.setItem('aura_current_user', JSON.stringify(updatedUser));
+                        
+                        // Update IndexedDB
                         saveUserToDB(updatedUser);
                         
+                        // Update cookies
                         setCookie('aura_current_email', updatedUser.email);
                         setCookie('aura_auth_token', btoa(updatedUser.email + ':' + updatedUser.password));
                         
-                        localStorage.setItem('aura_current_user', JSON.stringify(updatedUser));
+                        // Update context
                         updateUser(updatedUser);
                     };
                     reader.readAsDataURL(file);
@@ -1777,6 +1851,7 @@
                 setPreviewImage(null);
                 const updatedUser = { ...user, profilePicture: null };
                 
+                // Update localStorage users array
                 const users = JSON.parse(localStorage.getItem('aura_users') || '[]');
                 const userIndex = users.findIndex(u => u.email === user.email);
                 if (userIndex !== -1) {
@@ -1784,11 +1859,17 @@
                     localStorage.setItem('aura_users', JSON.stringify(users));
                 }
                 
+                // Update aura_current_user
+                localStorage.setItem('aura_current_user', JSON.stringify(updatedUser));
+                
+                // Update IndexedDB
                 saveUserToDB(updatedUser);
+                
+                // Update cookies
                 setCookie('aura_current_email', updatedUser.email);
                 setCookie('aura_auth_token', btoa(updatedUser.email + ':' + updatedUser.password));
                 
-                localStorage.setItem('aura_current_user', JSON.stringify(updatedUser));
+                // Update context
                 updateUser(updatedUser);
             };
             
@@ -1963,6 +2044,35 @@
                                 )}
                             </button>
                         </motion.div>
+                    </div>
+                </div>
+            );
+        };
+        
+        // Lesson Item with Red Border Glow
+        const LessonItem = ({ lesson, isCompleted, isLocked, isActive, onClick }) => {
+            return (
+                <div className="lesson-item-wrapper">
+                    <div className={`lesson-border-glow ${isActive ? 'opacity-100' : 'opacity-0 hover:opacity-100'} transition-opacity duration-300`}>
+                        <div className="lesson-border-glow-inner">
+                            <motion.button
+                                onClick={onClick}
+                                className={`lesson-item w-full text-left p-2 rounded-lg text-xs flex items-center gap-2 transition-all ${
+                                    isActive ? 'lesson-active text-indigo-300' : 
+                                    isCompleted ? 'text-green-400' : 
+                                    isLocked ? 'text-gray-600 cursor-not-allowed' : 
+                                    'text-gray-400 hover:text-white'
+                                }`}
+                                disabled={isLocked}
+                                whileHover={!isLocked ? { x: 5 } : {}}
+                            >
+                                {isCompleted ? <Icon name="check-circle" size={12} /> : 
+                                 isLocked ? <Icon name="lock" size={12} /> : 
+                                 <Icon name="play-circle" size={12} />}
+                                <span className="flex-1 truncate">{lesson.title}</span>
+                                <span className="text-gray-600">{lesson.duration}</span>
+                            </motion.button>
+                        </div>
                     </div>
                 </div>
             );
@@ -2284,19 +2394,14 @@
                                                                 const isActive = activeLesson?.id === lesson.id;
                                                                 
                                                                 return (
-                                                                    <motion.button
+                                                                    <LessonItem
                                                                         key={lesson.id}
+                                                                        lesson={lesson}
+                                                                        isCompleted={isCompleted}
+                                                                        isLocked={isLocked}
+                                                                        isActive={isActive}
                                                                         onClick={() => handleLessonClick(lesson, lIdx, idx)}
-                                                                        className={`lesson-item w-full text-left p-2 rounded-lg text-xs flex items-center gap-2 transition-all ${isActive ? 'lesson-active text-indigo-300' : isCompleted ? 'text-green-400' : isLocked ? 'text-gray-600 cursor-not-allowed' : 'text-gray-400 hover:text-white'}`}
-                                                                        disabled={isLocked}
-                                                                        whileHover={!isLocked ? { x: 5 } : {}}
-                                                                    >
-                                                                        {isCompleted ? <Icon name="check-circle" size={12} /> : 
-                                                                         isLocked ? <Icon name="lock" size={12} /> : 
-                                                                         <Icon name="play-circle" size={12} />}
-                                                                        <span className="flex-1 truncate">{lesson.title}</span>
-                                                                        <span className="text-gray-600">{lesson.duration}</span>
-                                                                    </motion.button>
+                                                                    />
                                                                 );
                                                             })}
                                                         </motion.div>
@@ -2623,12 +2728,17 @@
                 
                 const handleNav = (e) => {
                     const page = e.detail;
-                    setCurrentPage(page);
+                    // If user is logged in and tries to go to home, redirect to dashboard
+                    if (page === 'home' && isLoggedIn) {
+                        setCurrentPage('dashboard');
+                    } else {
+                        setCurrentPage(page);
+                    }
                 };
                 
                 window.addEventListener('navigate', handleNav);
                 return () => window.removeEventListener('navigate', handleNav);
-            }, []);
+            }, [isLoggedIn]);
 
             const handleIntroComplete = () => {
                 setIntroCompleted(true);
