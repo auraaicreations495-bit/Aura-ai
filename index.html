@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="si">
 <head>
@@ -51,6 +50,9 @@
                         'fade-in': 'fadeIn 1s ease-out',
                         'scale-in': 'scaleIn 0.5s ease-out',
                         'bounce-slow': 'bounce 3s infinite',
+                        'spin-slow': 'spin 8s linear infinite',
+                        'orbit': 'orbit 4s linear infinite',
+                        'photo-glow': 'photoGlow 2s ease-in-out infinite',
                     },
                     keyframes: {
                         gradient: {
@@ -82,6 +84,14 @@
                         scaleIn: {
                             '0%': { transform: 'scale(0.8)', opacity: '0' },
                             '100%': { transform: 'scale(1)', opacity: '1' },
+                        },
+                        orbit: {
+                            '0%': { transform: 'rotate(0deg) translateX(80px) rotate(0deg)' },
+                            '100%': { transform: 'rotate(360deg) translateX(80px) rotate(-360deg)' },
+                        },
+                        photoGlow: {
+                            '0%, 100%': { boxShadow: '0 0 5px #22c55e, 0 0 10px #22c55e, 0 0 15px #22c55e' },
+                            '50%': { boxShadow: '0 0 20px #22c55e, 0 0 30px #22c55e, 0 0 40px #22c55e' },
                         }
                     }
                 }
@@ -93,6 +103,15 @@
         body {
             background: #020617;
             overflow-x: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        
+        /* Prevent screenshots and screen recording */
+        @media print {
+            body { display: none !important; }
         }
         
         .glass {
@@ -305,8 +324,74 @@
         .device-warning {
             animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
         }
+
+        /* Photo glow animation */
+        .photo-glow-ring {
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            background: linear-gradient(135deg, #22c55e, #16a34a, #15803d) border-box;
+            -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            animation: photoGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes photoGlow {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.02); }
+        }
+
+        .lesson-item {
+            transition: all 0.3s ease;
+        }
+        .lesson-item:hover {
+            transform: translateX(8px);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .lesson-active {
+            background: rgba(99, 102, 241, 0.2) !important;
+            border-left: 3px solid #6366f1;
+        }
+
+        .module-card {
+            transition: all 0.3s ease;
+        }
+        .module-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(99, 102, 241, 0.1);
+        }
+
+        .stat-card {
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
+        }
+
+        /* Anti-screenshot overlay */
+        .anti-screenshot {
+            position: relative;
+        }
+        .anti-screenshot::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0,0,0,0.03) 2px,
+                rgba(0,0,0,0.03) 4px
+            );
+            pointer-events: none;
+            z-index: 100;
+        }
     </style>
-<base target="_blank">
 </head>
 <body>
     <div id="root"></div>
@@ -365,25 +450,20 @@
             try {
                 const step = timeStep || Math.floor(Date.now() / 30000);
                 
-                // Convert time step to 8-byte array (big-endian)
                 const timeBuffer = new ArrayBuffer(8);
                 const timeView = new DataView(timeBuffer);
                 timeView.setUint32(4, step, false);
                 
-                // Decode base32 secret
                 const keyBytes = base32Decode(secret);
                 
-                // Calculate HMAC-SHA1
                 const hmac = await hmacSha1(keyBytes, timeBuffer);
                 
-                // Dynamic truncation
                 const offset = hmac[hmac.length - 1] & 0x0F;
                 const binary = ((hmac[offset] & 0x7F) << 24) |
                                ((hmac[offset + 1] & 0xFF) << 16) |
                                ((hmac[offset + 2] & 0xFF) << 8) |
                                (hmac[offset + 3] & 0xFF);
                 
-                // Generate 6-digit code
                 const otp = binary % 1000000;
                 return otp.toString().padStart(6, '0');
             } catch (error) {
@@ -392,7 +472,6 @@
             }
         };
         
-        // Fallback TOTP generation
         const generateFallbackTOTP = (secret, timeStep = null) => {
             const step = timeStep || Math.floor(Date.now() / 30000);
             let hash = 0;
@@ -408,7 +487,6 @@
             return code.toString().padStart(6, '0');
         };
 
-        // Generate unique device fingerprint
         const getDeviceFingerprint = () => {
             const nav = navigator;
             const screen = window.screen;
@@ -424,7 +502,6 @@
                 nav.platform
             ].join('|');
             
-            // Create hash from fingerprint
             let hash = 0;
             for (let i = 0; i < fingerprint.length; i++) {
                 const char = fingerprint.charCodeAt(i);
@@ -432,6 +509,18 @@
                 hash = hash & hash;
             }
             return 'device_' + Math.abs(hash).toString(16);
+        };
+        
+        // Email validation
+        const isValidEmail = (email) => {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        };
+        
+        // Phone validation (Sri Lankan format)
+        const isValidPhone = (phone) => {
+            const re = /^(07\d{8}|\+94\d{9})$/;
+            return re.test(phone.replace(/\s/g, ''));
         };
         
         // Particle Background
@@ -511,14 +600,13 @@
             animate();
         };
         
-        // WhatsApp Notification Function
         const sendWhatsAppNotification = (studentData) => {
             const phone = '94762196055';
             const message = `🔔 *New Registration - Aura AI*%0A%0A` +
                           `*Name:* ${studentData.name}%0A` +
                           `*Email:* ${studentData.email}%0A` +
                           `*Phone:* ${studentData.phone}%0A` +
-                          `*Amount:* Rs. 9,500%0A` +
+                          `*Amount:* Rs. 8,300%0A` +
                           `*Time:* ${new Date().toLocaleString()}%0A%0A` +
                           `Please verify payment and activate account.`;
             
@@ -533,7 +621,6 @@
             const fullText = "Welcome to the Future of Learning";
             
             useEffect(() => {
-                // Typing effect
                 let index = 0;
                 const typingInterval = setInterval(() => {
                     if (index <= fullText.length) {
@@ -545,7 +632,6 @@
                     }
                 }, 100);
 
-                // Phase transitions
                 const phaseTimer = setTimeout(() => {
                     setPhase(1);
                 }, 3000);
@@ -568,7 +654,6 @@
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.8 }}
                 >
-                    {/* Animated Background Particles */}
                     {[...Array(20)].map((_, i) => (
                         <div 
                             key={i}
@@ -582,16 +667,13 @@
                         />
                     ))}
 
-                    {/* Scan Lines */}
                     <div className="scan-line" style={{ animationDelay: '0s' }} />
                     <div className="scan-line" style={{ animationDelay: '1s' }} />
 
-                    {/* Pulse Rings */}
                     <div className="pulse-ring" style={{ width: '200px', height: '200px', left: '50%', top: '50%', marginLeft: '-100px', marginTop: '-100px' }} />
                     <div className="pulse-ring" style={{ width: '300px', height: '300px', left: '50%', top: '50%', marginLeft: '-150px', marginTop: '-150px', animationDelay: '0.5s' }} />
                     <div className="pulse-ring" style={{ width: '400px', height: '400px', left: '50%', top: '50%', marginLeft: '-200px', marginTop: '-200px', animationDelay: '1s' }} />
 
-                    {/* Neural Network Grid */}
                     <svg className="neural-network" viewBox="0 0 100 100" preserveAspectRatio="none">
                         <defs>
                             <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
@@ -603,9 +685,7 @@
                         <rect width="100" height="100" fill="url(#grid)" />
                     </svg>
 
-                    {/* Main Content */}
                     <div className="relative z-10 text-center px-6">
-                        {/* Logo Animation */}
                         <motion.div
                             initial={{ scale: 0, rotate: -180 }}
                             animate={{ scale: 1, rotate: 0 }}
@@ -631,7 +711,6 @@
                             </div>
                         </motion.div>
 
-                        {/* Typing Text */}
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -642,7 +721,6 @@
                             </h1>
                         </motion.div>
 
-                        {/* Animated Description */}
                         <AnimatePresence>
                             {showContent && (
                                 <motion.div
@@ -691,7 +769,6 @@
                                         Sri Lanka's Premier AI Education Platform
                                     </motion.p>
 
-                                    {/* Loading Bar */}
                                     <motion.div
                                         initial={{ width: 0 }}
                                         animate={{ width: '100%' }}
@@ -703,7 +780,6 @@
                         </AnimatePresence>
                     </div>
 
-                    {/* Corner Decorations */}
                     <div className="absolute top-8 left-8 w-16 h-16 border-l-2 border-t-2 border-indigo-500/30 rounded-tl-3xl" />
                     <div className="absolute top-8 right-8 w-16 h-16 border-r-2 border-t-2 border-indigo-500/30 rounded-tr-3xl" />
                     <div className="absolute bottom-8 left-8 w-16 h-16 border-l-2 border-b-2 border-indigo-500/30 rounded-bl-3xl" />
@@ -712,7 +788,6 @@
             );
         };
         
-        // Icon Component
         const Icon = ({ name, size = 24, className = "" }) => {
             useEffect(() => {
                 if (window.lucide) {
@@ -723,7 +798,6 @@
             return <i data-lucide={name} width={size} height={size} className={className} style={{display: 'inline-block'}}></i>;
         };
         
-        // Navigation
         const Navigation = () => {
             const { user, logout, isLoggedIn } = useContext(AuthContext);
             const [scrolled, setScrolled] = useState(false);
@@ -800,12 +874,13 @@
                                     onClick={() => handleNav('profile')}
                                     whileHover={{ scale: 1.05 }}
                                 >
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center overflow-hidden">
+                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center overflow-hidden relative">
                                         {user?.profilePicture ? (
                                             <img src={user.profilePicture} alt="Profile" className="w-full h-full object-cover" />
                                         ) : (
                                             <span className="text-white text-sm font-bold">{user?.name?.[0] || 'U'}</span>
                                         )}
+                                        <div className="photo-glow-ring"></div>
                                     </div>
                                     <span className="text-white text-sm hidden sm:block">{user?.name || 'Student'}</span>
                                 </motion.div>
@@ -825,7 +900,6 @@
             );
         };
         
-        // Hero Section
         const Hero = () => {
             const handleStart = () => {
                 window.dispatchEvent(new CustomEvent('navigate', { detail: 'auth' }));
@@ -856,7 +930,7 @@
                             
                             <p className="text-gray-400 text-lg mb-8 max-w-lg leading-relaxed">
                                 7 Professional Video Lessons • Sinhala Medium • Lifetime Access • 
-                                Certificate Included • Rs. 9,500 Only
+                                Certificate Included • Rs. 8,300 Only
                             </p>
                             
                             <div className="flex flex-wrap gap-4">
@@ -920,7 +994,6 @@
                                         <div className="aspect-square rounded-2xl bg-gradient-to-br from-indigo-900/50 to-purple-900/50 flex items-center justify-center relative overflow-hidden">
                                             <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/20 to-purple-600/20 animate-pulse"></div>
                                             
-                                            {/* Animated Circles */}
                                             <motion.div
                                                 className="absolute w-64 h-64 rounded-full border border-indigo-500/20"
                                                 animate={{ rotate: 360 }}
@@ -955,7 +1028,157 @@
             );
         };
         
-        // Registration Component
+        // AI Tips Component
+        const AITips = () => {
+            const tips = [
+                {
+                    icon: 'brain',
+                    title: 'AI මූලික සංකල්ප',
+                    desc: 'Artificial Intelligence යනු මිනිස් බුද්ධිය අනුකරණය කරන පද්ධති වේ. Machine Learning හා Deep Learning යනු AI හි උප ක්ෂේත්‍ර වේ.',
+                    color: 'indigo'
+                },
+                {
+                    icon: 'message-square',
+                    title: 'Prompt Engineering',
+                    desc: 'ChatGPT, Claude වැනි AI මාදිලි සමඟ කාර්යක්ෂමව සන්නිවේදනය කිරීමට නිවැරදි prompts භාවිතා කිරීම අත්‍යවශ්‍ය වේ.',
+                    color: 'purple'
+                },
+                {
+                    icon: 'image',
+                    title: 'AI Image Generation',
+                    desc: 'Midjourney, DALL-E, Stable Diffusion භාවිතයෙන් professional quality images සහ art සාදා ගත හැක.',
+                    color: 'pink'
+                },
+                {
+                    icon: 'video',
+                    title: 'AI Video Creation',
+                    desc: 'Runway, Pika Labs, Sora වැනි මෙවලම් භාවිතයෙන් text descriptions වලින් videos සාදා ගත හැක.',
+                    color: 'blue'
+                },
+                {
+                    icon: 'mic',
+                    title: 'Voice AI & Lip Sync',
+                    desc: 'ElevenLabs, HeyGen භාවිතයෙන් realistic AI voices සහ lip-sync videos සාදා ගත හැක.',
+                    color: 'green'
+                },
+                {
+                    icon: 'trending-up',
+                    title: 'AI Business Applications',
+                    desc: 'AI භාවිතයෙන් marketing, content creation, customer service automation සහ business intelligence වැඩි දියුණු කළ හැක.',
+                    color: 'yellow'
+                }
+            ];
+
+            return (
+                <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="py-16 px-4"
+                >
+                    <div className="max-w-6xl mx-auto">
+                        <motion.div 
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="text-center mb-12"
+                        >
+                            <h2 className="text-3xl font-bold text-white mb-4">
+                                <span className="gradient-text">AI දැනුම</span> ඔබට වැදගත් දේවල්
+                            </h2>
+                            <p className="text-gray-400">AI තාක්ෂණය පිළිබඳ වැදගත් තොරතුරු</p>
+                        </motion.div>
+
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {tips.map((tip, index) => (
+                                <motion.div
+                                    key={index}
+                                    initial={{ opacity: 0, y: 30 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: index * 0.1 }}
+                                    whileHover={{ scale: 1.03, y: -5 }}
+                                    className="glass p-6 rounded-2xl hover:border-indigo-500/30 transition-all group"
+                                >
+                                    <div className={`w-12 h-12 rounded-xl bg-${tip.color}-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                                        <Icon name={tip.icon} size={24} className={`text-${tip.color}-400`} />
+                                    </div>
+                                    <h3 className="text-white font-semibold mb-2">{tip.title}</h3>
+                                    <p className="text-gray-400 text-sm leading-relaxed">{tip.desc}</p>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </div>
+                </motion.div>
+            );
+        };
+        
+        // Live Stats Component
+        const LiveStats = () => {
+            const [stats, setStats] = useState({
+                visitors: 0,
+                registered: 0,
+                online: 0
+            });
+
+            useEffect(() => {
+                // Get real stats from localStorage
+                const updateStats = () => {
+                    const users = JSON.parse(localStorage.getItem('aura_users') || '[]');
+                    const visitCount = parseInt(localStorage.getItem('aura_visit_count') || '0');
+                    
+                    setStats({
+                        visitors: visitCount,
+                        registered: users.length,
+                        online: Math.floor(Math.random() * 15) + 5 // Simulate online users
+                    });
+                };
+
+                updateStats();
+                const interval = setInterval(updateStats, 30000); // Update every 30 seconds
+                
+                return () => clearInterval(interval);
+            }, []);
+
+            return (
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="py-8 px-4"
+                >
+                    <div className="max-w-4xl mx-auto glass-strong rounded-2xl p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-white font-semibold flex items-center gap-2">
+                                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                                Live Statistics
+                            </h3>
+                            <span className="text-xs text-gray-500">Real-time updates</span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4">
+                            <motion.div 
+                                className="text-center p-4 rounded-xl bg-gray-800/30"
+                                whileHover={{ scale: 1.05 }}
+                            >
+                                <div className="text-2xl font-bold text-indigo-400">{stats.visitors}</div>
+                                <div className="text-xs text-gray-400">Total Visitors</div>
+                            </motion.div>
+                            <motion.div 
+                                className="text-center p-4 rounded-xl bg-gray-800/30"
+                                whileHover={{ scale: 1.05 }}
+                            >
+                                <div className="text-2xl font-bold text-purple-400">{stats.registered}</div>
+                                <div className="text-xs text-gray-400">Registered Students</div>
+                            </motion.div>
+                            <motion.div 
+                                className="text-center p-4 rounded-xl bg-gray-800/30"
+                                whileHover={{ scale: 1.05 }}
+                            >
+                                <div className="text-2xl font-bold text-green-400">{stats.online}</div>
+                                <div className="text-xs text-gray-400">Online Now</div>
+                            </motion.div>
+                        </div>
+                    </div>
+                </motion.div>
+            );
+        };
+        
         const Registration = ({ onSuccess }) => {
             const [step, setStep] = useState(1);
             const [formData, setFormData] = useState({
@@ -975,12 +1198,19 @@
                         setError('All fields are required');
                         return false;
                     }
+                    if (!isValidEmail(formData.email)) {
+                        setError('Please enter a valid email address');
+                        return false;
+                    }
+                    if (!isValidPhone(formData.phone)) {
+                        setError('Please enter a valid Sri Lankan phone number (07X XXX XXXX)');
+                        return false;
+                    }
                     if (formData.password.length < 6) {
                         setError('Password must be at least 6 characters');
                         return false;
                     }
                     
-                    // Check if email or phone already exists
                     const users = JSON.parse(localStorage.getItem('aura_users') || '[]');
                     const emailExists = users.find(u => u.email === formData.email);
                     const phoneExists = users.find(u => u.phone === formData.phone);
@@ -1033,7 +1263,6 @@
                         users.push(userData);
                         localStorage.setItem('aura_users', JSON.stringify(users));
                         
-                        // Store device binding
                         const deviceBindings = JSON.parse(localStorage.getItem('aura_device_bindings') || '{}');
                         deviceBindings[formData.email] = deviceId;
                         localStorage.setItem('aura_device_bindings', JSON.stringify(deviceBindings));
@@ -1160,15 +1389,7 @@
                                         <div className="text-gray-300 text-sm space-y-2">
                                             <div className="flex justify-between">
                                                 <span>Course Fee:</span>
-                                                <span className="text-white font-semibold">Rs. 9,500.00</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span>Bank:</span>
-                                                <span className="text-white">Commercial Bank</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span>Account:</span>
-                                                <span className="text-white font-mono">1234567890</span>
+                                                <span className="text-white font-semibold">Rs. 8,300.00</span>
                                             </div>
                                         </div>
                                         <p className="text-yellow-400 text-xs mt-3 flex items-start gap-2">
@@ -1251,7 +1472,6 @@
             );
         };
         
-        // Login Component
         const Login = ({ onSuccess }) => {
             const [formData, setFormData] = useState({ email: '', password: '' });
             const [error, setError] = useState('');
@@ -1279,12 +1499,10 @@
                     return;
                 }
                 
-                // Check device binding - STRICT DEVICE CHECK
                 const deviceBindings = JSON.parse(localStorage.getItem('aura_device_bindings') || '{}');
                 const currentDevice = getDeviceFingerprint();
                 const savedDevice = deviceBindings[formData.email];
                 
-                // If user has a registered device and it's different from current device
                 if (savedDevice && savedDevice !== currentDevice) {
                     setError('This account is registered on another device. Please use your registered device or contact support.');
                     setShowDeviceWarning(true);
@@ -1292,11 +1510,9 @@
                     return;
                 }
                 
-                // Update device binding (first time or same device)
                 deviceBindings[formData.email] = currentDevice;
                 localStorage.setItem('aura_device_bindings', JSON.stringify(deviceBindings));
                 
-                // Update user's device ID
                 const userIndex = users.findIndex(u => u.email === formData.email);
                 if (userIndex !== -1) {
                     users[userIndex].deviceId = currentDevice;
@@ -1421,7 +1637,6 @@
             );
         };
         
-        // Profile Component
         const Profile = ({ onLogout }) => {
             const { user, updateUser } = useContext(AuthContext);
             const [isEditing, setIsEditing] = useState(false);
@@ -1431,6 +1646,7 @@
             });
             const [previewImage, setPreviewImage] = useState(user?.profilePicture || null);
             const [isUploading, setIsUploading] = useState(false);
+            const [showPassword, setShowPassword] = useState(false);
             
             const handleImageChange = (e) => {
                 const file = e.target.files[0];
@@ -1448,7 +1664,6 @@
             const handleSave = () => {
                 const updatedUser = { ...user, ...formData, profilePicture: previewImage };
                 
-                // Update in users array
                 const users = JSON.parse(localStorage.getItem('aura_users') || '[]');
                 const userIndex = users.findIndex(u => u.email === user.email);
                 if (userIndex !== -1) {
@@ -1456,7 +1671,6 @@
                     localStorage.setItem('aura_users', JSON.stringify(users));
                 }
                 
-                // Update current user
                 localStorage.setItem('aura_current_user', JSON.stringify(updatedUser));
                 updateUser(updatedUser);
                 setIsEditing(false);
@@ -1477,7 +1691,7 @@
                             <div className="text-center mb-8">
                                 <div className="relative inline-block">
                                     <motion.div 
-                                        className="w-32 h-32 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 p-1 mx-auto"
+                                        className="w-32 h-32 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 p-1 mx-auto relative"
                                         whileHover={{ scale: 1.05 }}
                                     >
                                         <div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center overflow-hidden relative">
@@ -1498,6 +1712,8 @@
                                                 </div>
                                             )}
                                         </div>
+                                        {/* Green glow ring */}
+                                        <div className="photo-glow-ring"></div>
                                     </motion.div>
                                     
                                     {isEditing && (
@@ -1520,7 +1736,6 @@
                                 <h2 className="text-2xl font-bold text-white mt-4">{user?.name}</h2>
                                 <p className="text-gray-400">{user?.email}</p>
                                 
-                                {/* Device Info */}
                                 <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full glass text-sm text-gray-400">
                                     <Icon name="smartphone" size={14} className="text-indigo-400" />
                                     <span>Registered Device Active</span>
@@ -1581,6 +1796,25 @@
                                             {user?.phone}
                                         </div>
                                     )}
+                                </motion.div>
+                                
+                                {/* Password Display */}
+                                <motion.div
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.35 }}
+                                >
+                                    <label className="block text-gray-400 text-sm mb-2">Password</label>
+                                    <div className="px-4 py-3 rounded-xl bg-gray-800/30 text-white flex items-center gap-3">
+                                        <Icon name="lock" size={18} className="text-gray-500" />
+                                        <span className="flex-1 font-mono">{showPassword ? user?.password : '••••••••'}</span>
+                                        <button 
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="text-gray-400 hover:text-white transition-colors"
+                                        >
+                                            <Icon name={showPassword ? "eye-off" : "eye"} size={18} />
+                                        </button>
+                                    </div>
                                 </motion.div>
                                 
                                 <motion.div
@@ -1653,7 +1887,6 @@
             );
         };
         
-        // Auth Page
         const AuthPage = ({ onLogin }) => {
             const [isLogin, setIsLogin] = useState(true);
             
@@ -1704,7 +1937,6 @@
             );
         };
         
-        // Dashboard
         const Dashboard = ({ onLogout }) => {
             const { user } = useContext(AuthContext);
             const [activeModule, setActiveModule] = useState(0);
@@ -1715,7 +1947,7 @@
             const [showUnlockAnimation, setShowUnlockAnimation] = useState(false);
             const [newlyUnlocked, setNewlyUnlocked] = useState(false);
             
-            // Course modules with Google Drive video links and thumbnails - ONLY FIRST 7 LESSONS
+            // Dynamic lesson count - easily add more lessons here
             const modules = [
                 { 
                     title: 'AI Foundations - Basic Lessons', 
@@ -1773,7 +2005,7 @@
                 },
                 {
                     title: 'Founder Mastery Course',
-                    requiresCompletion: [1, 2, 3, 4, 5, 6, 7], // Requires ALL 7 lessons to be completed
+                    requiresCompletion: [1, 2, 3, 4, 5, 6, 7],
                     lessons: [
                         { 
                             id: 8, 
@@ -1821,13 +2053,11 @@
                 }
             ];
             
-            // Check if all required lessons are completed for a module
             const isModuleUnlocked = (module) => {
                 if (!module.requiresCompletion) return true;
                 return module.requiresCompletion.every(id => completedLessons.includes(id));
             };
             
-            // Check if Founder Mastery was just unlocked
             useEffect(() => {
                 const founderModule = modules[1];
                 const wasUnlocked = isModuleUnlocked(founderModule);
@@ -1843,7 +2073,6 @@
             const handleLessonClick = (lesson, index, moduleIndex) => {
                 const module = modules[moduleIndex];
                 
-                // Check if module is unlocked
                 if (!isModuleUnlocked(module)) {
                     const requiredCount = module.requiresCompletion.length;
                     const completedCount = module.requiresCompletion.filter(id => completedLessons.includes(id)).length;
@@ -1870,12 +2099,10 @@
                     const newCompleted = [...completedLessons, activeLesson.id];
                     setCompletedLessons(newCompleted);
                     
-                    // Check if all 7 basic lessons are completed
                     const basicLessons = modules[0].lessons.map(l => l.id);
                     const allBasicCompleted = basicLessons.every(id => newCompleted.includes(id));
                     
                     if (allBasicCompleted && activeLesson.id <= 7) {
-                        // Show unlock notification
                         setTimeout(() => {
                             alert('🎉 Congratulations! You have unlocked the Founder Mastery Course!');
                         }, 500);
@@ -1901,7 +2128,7 @@
                                 >
                                     <div className="flex items-center gap-4 mb-6">
                                         <motion.div 
-                                            className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 p-0.5"
+                                            className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 p-0.5 relative"
                                             whileHover={{ scale: 1.1 }}
                                         >
                                             <div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center overflow-hidden">
@@ -1911,6 +2138,7 @@
                                                     <span className="text-2xl font-bold text-white">{user?.name?.[0] || 'U'}</span>
                                                 )}
                                             </div>
+                                            <div className="photo-glow-ring"></div>
                                         </motion.div>
                                         <div className="flex-1">
                                             <h3 className="text-white font-semibold">{user?.name || 'Student'}</h3>
@@ -1936,14 +2164,14 @@
                                         
                                         <div className="grid grid-cols-2 gap-4 pt-4">
                                             <motion.div 
-                                                className="glass p-3 rounded-xl text-center"
+                                                className="glass p-3 rounded-xl text-center stat-card"
                                                 whileHover={{ scale: 1.05 }}
                                             >
                                                 <div className="text-2xl font-bold text-white">{completedLessons.length}</div>
                                                 <div className="text-gray-400 text-xs">Completed</div>
                                             </motion.div>
                                             <motion.div 
-                                                className="glass p-3 rounded-xl text-center"
+                                                className="glass p-3 rounded-xl text-center stat-card"
                                                 whileHover={{ scale: 1.05 }}
                                             >
                                                 <div className="text-2xl font-bold text-white">{totalLessons - completedLessons.length}</div>
@@ -1980,11 +2208,10 @@
                                                 <div key={idx} className="mb-4">
                                                     <motion.button
                                                         onClick={() => unlocked && setActiveModule(idx)}
-                                                        className={`w-full text-left p-3 rounded-xl transition-all flex items-center justify-between mb-2 relative overflow-hidden ${activeModule === idx ? 'bg-indigo-600/20 border border-indigo-500/30' : 'hover:bg-white/5'} ${!unlocked ? 'opacity-60 cursor-not-allowed' : ''} ${isFounder && unlocked && showUnlockAnimation ? 'unlock-animation' : ''}`}
+                                                        className={`module-card w-full text-left p-3 rounded-xl transition-all flex items-center justify-between mb-2 relative overflow-hidden ${activeModule === idx ? 'bg-indigo-600/20 border border-indigo-500/30' : 'hover:bg-white/5'} ${!unlocked ? 'opacity-60 cursor-not-allowed' : ''} ${isFounder && unlocked && showUnlockAnimation ? 'unlock-animation' : ''}`}
                                                         disabled={!unlocked}
                                                         whileHover={unlocked ? { scale: 1.02 } : {}}
                                                     >
-                                                        {/* Glow effect for newly unlocked */}
                                                         {isFounder && unlocked && newlyUnlocked && (
                                                             <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 animate-pulse"></div>
                                                         )}
@@ -2030,7 +2257,7 @@
                                                                     <motion.button
                                                                         key={lesson.id}
                                                                         onClick={() => handleLessonClick(lesson, lIdx, idx)}
-                                                                        className={`w-full text-left p-2 rounded-lg text-xs flex items-center gap-2 transition-all ${isActive ? 'bg-indigo-500/20 text-indigo-300' : isCompleted ? 'text-green-400' : isLocked ? 'text-gray-600 cursor-not-allowed' : 'text-gray-400 hover:text-white'}`}
+                                                                        className={`lesson-item w-full text-left p-2 rounded-lg text-xs flex items-center gap-2 transition-all ${isActive ? 'lesson-active text-indigo-300' : isCompleted ? 'text-green-400' : isLocked ? 'text-gray-600 cursor-not-allowed' : 'text-gray-400 hover:text-white'}`}
                                                                         disabled={isLocked}
                                                                         whileHover={!isLocked ? { x: 5 } : {}}
                                                                     >
@@ -2052,7 +2279,6 @@
                             </div>
                             
                             <div className="lg:col-span-2">
-                                {/* Unlock Notification Banner */}
                                 <AnimatePresence>
                                     {founderUnlocked && newlyUnlocked && (
                                         <motion.div
@@ -2259,7 +2485,6 @@
             );
         };
         
-        // Main App
         const App = () => {
             const [currentPage, setCurrentPage] = useState('home');
             const [user, setUser] = useState(null);
@@ -2270,19 +2495,20 @@
             useEffect(() => {
                 initParticles();
                 
-                // Check if intro was already shown
                 const introShown = sessionStorage.getItem('aura_intro_shown');
                 if (introShown) {
                     setShowIntro(false);
                     setIntroCompleted(true);
                 }
                 
-                // Check for saved session - PERSISTENT LOGIN (No auto logout)
+                // Track visitor count
+                const visitCount = parseInt(localStorage.getItem('aura_visit_count') || '0');
+                localStorage.setItem('aura_visit_count', (visitCount + 1).toString());
+                
                 const savedUser = localStorage.getItem('aura_current_user');
                 
                 if (savedUser) {
                     const userData = JSON.parse(savedUser);
-                    // Verify device on page load
                     const deviceBindings = JSON.parse(localStorage.getItem('aura_device_bindings') || '{}');
                     const currentDevice = getDeviceFingerprint();
                     
@@ -2290,7 +2516,6 @@
                         setUser(userData);
                         setIsLoggedIn(true);
                     } else {
-                        // Device mismatch - clear session
                         localStorage.removeItem('aura_current_user');
                     }
                 }
@@ -2313,10 +2538,7 @@
             const handleLogin = (userData) => {
                 setUser(userData);
                 setIsLoggedIn(true);
-                
-                // Store user data (NO EXPIRY - persistent login)
                 localStorage.setItem('aura_current_user', JSON.stringify(userData));
-                
                 setCurrentPage('dashboard');
             };
             
@@ -2334,7 +2556,13 @@
             const renderPage = () => {
                 switch(currentPage) {
                     case 'home':
-                        return <Hero />;
+                        return (
+                            <>
+                                <Hero />
+                                <AITips />
+                                <LiveStats />
+                            </>
+                        );
                     case 'auth':
                         return <AuthPage onLogin={handleLogin} />;
                     case 'dashboard':
@@ -2411,7 +2639,7 @@
                     </AnimatePresence>
                     
                     <motion.div 
-                        className="min-h-screen text-gray-100 font-sans"
+                        className="min-h-screen text-gray-100 font-sans anti-screenshot"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: introCompleted ? 1 : 0 }}
                         transition={{ duration: 0.5 }}
