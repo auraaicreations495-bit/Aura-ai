@@ -2498,24 +2498,30 @@
                     setIntroCompleted(true);
                 }
                 
-                // Check if user is already logged in (persist across sessions)
+                // Check if user is already logged in (persist across sessions using localStorage)
                 const savedUser = localStorage.getItem('aura_current_user');
                 
                 if (savedUser) {
-                    const userData = JSON.parse(savedUser);
-                    const deviceBindings = JSON.parse(localStorage.getItem('aura_device_bindings') || '{}');
-                    const currentDevice = getDeviceFingerprint();
-                    
-                    // Only check device if explicitly bound, otherwise allow login
-                    if (!deviceBindings[userData.email] || deviceBindings[userData.email] === currentDevice) {
-                        setUser(userData);
-                        setIsLoggedIn(true);
-                        // Update device binding if not set
-                        if (!deviceBindings[userData.email]) {
-                            deviceBindings[userData.email] = currentDevice;
-                            localStorage.setItem('aura_device_bindings', JSON.stringify(deviceBindings));
+                    try {
+                        const userData = JSON.parse(savedUser);
+                        const deviceBindings = JSON.parse(localStorage.getItem('aura_device_bindings') || '{}');
+                        const currentDevice = getDeviceFingerprint();
+                        
+                        // Check device binding - if same device or no binding yet, allow auto-login
+                        if (!deviceBindings[userData.email] || deviceBindings[userData.email] === currentDevice) {
+                            setUser(userData);
+                            setIsLoggedIn(true);
+                            // Update device binding if not set
+                            if (!deviceBindings[userData.email]) {
+                                deviceBindings[userData.email] = currentDevice;
+                                localStorage.setItem('aura_device_bindings', JSON.stringify(deviceBindings));
+                            }
+                        } else {
+                            // Different device - clear login
+                            localStorage.removeItem('aura_current_user');
                         }
-                    } else {
+                    } catch (e) {
+                        console.error('Error parsing saved user:', e);
                         localStorage.removeItem('aura_current_user');
                     }
                 }
@@ -2543,6 +2549,7 @@
             };
             
             const handleLogout = () => {
+                // Only logout when explicitly clicking logout button
                 setUser(null);
                 setIsLoggedIn(false);
                 localStorage.removeItem('aura_current_user');
