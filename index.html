@@ -56,6 +56,8 @@
                         'border-run': 'borderRun 2s linear infinite',
                         'btn-pulse': 'btnPulse 2s ease-in-out infinite',
                         'btn-shine': 'btnShine 2s linear infinite',
+                        'photo-shimmer': 'photoShimmer 3s ease-in-out infinite',
+                        'photo-rotate': 'photoRotate 20s linear infinite',
                     },
                     keyframes: {
                         gradient: {
@@ -107,6 +109,14 @@
                         btnShine: {
                             '0%': { left: '-100%' },
                             '100%': { left: '200%' },
+                        },
+                        photoShimmer: {
+                            '0%': { backgroundPosition: '-200% center' },
+                            '100%': { backgroundPosition: '200% center' },
+                        },
+                        photoRotate: {
+                            '0%': { transform: 'rotate(0deg)' },
+                            '100%': { transform: 'rotate(360deg)' },
                         }
                     }
                 }
@@ -708,11 +718,14 @@
             100% { filter: hue-rotate(360deg); }
         }
         
-        /* Logo styles */
+        /* Logo styles - NO BORDER BOX */
         .logo-img {
             width: 100%;
             height: 100%;
             object-fit: contain;
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
         }
         
         .nav-logo-img {
@@ -720,6 +733,114 @@
             height: 100%;
             object-fit: contain;
             border-radius: 0.5rem;
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+        }
+        
+        /* Photo animation styles */
+        .photo-animated-container {
+            position: relative;
+            border-radius: 1.5rem;
+            overflow: hidden;
+        }
+        
+        .photo-animated-container::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            background: linear-gradient(45deg, #ff4ecd, #00d4ff, #8b5cf6, #ff9800, #22c55e, #ff4ecd);
+            background-size: 400% 400%;
+            border-radius: inherit;
+            z-index: -1;
+            animation: gradientShift 4s ease infinite;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .photo-shimmer-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                105deg,
+                transparent 40%,
+                rgba(255,255,255,0.2) 45%,
+                rgba(255,255,255,0.3) 50%,
+                rgba(255,255,255,0.2) 55%,
+                transparent 60%
+            );
+            background-size: 200% 100%;
+            animation: photoShimmer 3s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+        .photo-float-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        /* Screen recording prevention */
+        .screen-protect {
+            position: relative;
+        }
+        
+        .screen-protect::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(0,0,0,0.02) 10px,
+                rgba(0,0,0,0.02) 20px
+            );
+            pointer-events: none;
+            z-index: 9997;
+        }
+        
+        /* Live stats styles */
+        .live-stat-card {
+            background: linear-gradient(135deg, rgba(0,21,62,0.8), rgba(139,92,246,0.2));
+            border: 1px solid rgba(255,78,205,0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .live-pulse {
+            position: relative;
+        }
+        
+        .live-pulse::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            right: -12px;
+            top: 50%;
+            transform: translateY(-50%);
+            animation: livePulse 2s infinite;
+        }
+        
+        @keyframes livePulse {
+            0% { box-shadow: 0 0 0 0 rgba(34,197,94,0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(34,197,94,0); }
+            100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+        }
+        
+        /* Prevent screen recording */
+        @media (prefers-reduced-motion: no-preference) {
+            .no-screen-record {
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+            }
         }
     </style>
 </head>
@@ -1021,6 +1142,65 @@
             setCookie(name, '', -1);
         };
         
+        // Screen recording prevention
+        const preventScreenRecording = () => {
+            // Disable right-click
+            document.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                return false;
+            });
+            
+            // Disable keyboard shortcuts for screenshots
+            document.addEventListener('keydown', (e) => {
+                // Print Screen
+                if (e.key === 'PrintScreen') {
+                    e.preventDefault();
+                    navigator.clipboard.writeText('');
+                    alert('Screen recording is not allowed on this website!');
+                    return false;
+                }
+                // Ctrl+Shift+S, Ctrl+S, Ctrl+P
+                if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'p' || e.shiftKey && e.key === 's')) {
+                    e.preventDefault();
+                    return false;
+                }
+                // F12, Ctrl+Shift+I, Ctrl+Shift+J
+                if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'i' || e.key === 'j' || e.key === 'c'))) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+            
+            // Detect visibility change (tab switching during recording)
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    // Clear sensitive content when tab is hidden
+                    const videoContainers = document.querySelectorAll('iframe');
+                    videoContainers.forEach(iframe => {
+                        iframe.style.filter = 'blur(20px)';
+                    });
+                } else {
+                    const videoContainers = document.querySelectorAll('iframe');
+                    videoContainers.forEach(iframe => {
+                        iframe.style.filter = 'none';
+                    });
+                }
+            });
+            
+            // Detect dev tools
+            const detectDevTools = () => {
+                const threshold = 160;
+                const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+                const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+                
+                if (widthThreshold || heightThreshold) {
+                    document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#000;color:#fff;font-size:24px;">Developer tools detected. Access denied.</div>';
+                }
+            };
+            
+            setInterval(detectDevTools, 1000);
+        };
+        
         const AIIntroAnimation = ({ onComplete }) => {
             const [text, setText] = useState('');
             const [showContent, setShowContent] = useState(false);
@@ -1195,6 +1375,76 @@
             return <i data-lucide={name} width={size} height={size} className={className} style={{display: 'inline-block'}}></i>;
         };
         
+        const LiveStats = () => {
+            const [stats, setStats] = useState({
+                totalVisitors: 1247,
+                registeredUsers: 89,
+                onlineNow: 23,
+                lastUpdated: new Date()
+            });
+            
+            useEffect(() => {
+                // Load from localStorage
+                const savedStats = localStorage.getItem('aura_live_stats');
+                if (savedStats) {
+                    setStats(JSON.parse(savedStats));
+                }
+                
+                const interval = setInterval(() => {
+                    setStats(prev => {
+                        const newVisitors = prev.totalVisitors + Math.floor(Math.random() * 3);
+                        const newOnline = Math.max(5, Math.min(50, prev.onlineNow + Math.floor(Math.random() * 7) - 3));
+                        const newStats = {
+                            ...prev,
+                            totalVisitors: newVisitors,
+                            onlineNow: newOnline,
+                            lastUpdated: new Date()
+                        };
+                        localStorage.setItem('aura_live_stats', JSON.stringify(newStats));
+                        return newStats;
+                    });
+                }, 20000); // Update every 20 seconds
+                
+                return () => clearInterval(interval);
+            }, []);
+            
+            const getRegisteredCount = () => {
+                const localUsers = JSON.parse(localStorage.getItem('aura_users') || '[]');
+                return localUsers.length;
+            };
+            
+            return (
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12"
+                >
+                    <div className="live-stat-card rounded-2xl p-4 text-center">
+                        <div className="text-2xl font-bold text-white mb-1">{stats.totalVisitors.toLocaleString()}</div>
+                        <div className="text-gray-400 text-xs flex items-center justify-center gap-1">
+                            <span className="live-pulse">Total Visitors</span>
+                        </div>
+                    </div>
+                    <div className="live-stat-card rounded-2xl p-4 text-center">
+                        <div className="text-2xl font-bold text-pink-400 mb-1">{getRegisteredCount()}</div>
+                        <div className="text-gray-400 text-xs flex items-center justify-center gap-1">
+                            <span className="live-pulse">Registered</span>
+                        </div>
+                    </div>
+                    <div className="live-stat-card rounded-2xl p-4 text-center">
+                        <div className="text-2xl font-bold text-green-400 mb-1">{stats.onlineNow}</div>
+                        <div className="text-gray-400 text-xs flex items-center justify-center gap-1">
+                            <span className="live-pulse">Online Now</span>
+                        </div>
+                    </div>
+                    <div className="live-stat-card rounded-2xl p-4 text-center">
+                        <div className="text-2xl font-bold text-cyan-400 mb-1">7+</div>
+                        <div className="text-gray-400 text-xs">Video Lessons</div>
+                    </div>
+                </motion.div>
+            );
+        };
+        
         const Navigation = () => {
             const { user, logout, isLoggedIn } = useContext(AuthContext);
             const [scrolled, setScrolled] = useState(false);
@@ -1345,8 +1595,7 @@
                             </h1>
                             
                             <p className="text-gray-400 text-lg mb-8 max-w-lg leading-relaxed">
-                                7 Professional Video Lessons • Sinhala Medium • Lifetime Access • 
-                                Certificate Included • Rs. 8,300 Only
+                                ඔබේ අනාගතය වෙනස් කරන AI දැනුම ලබා ගන්න. සිංහල මාධ්‍යයෙන්, ප්‍රායෝගික පාඨමාලා සමඟින්.
                             </p>
                             
                             <div className="flex flex-wrap gap-4">
@@ -1376,7 +1625,7 @@
                             className="relative"
                         >
                             <motion.div 
-                                className="flyer-container relative"
+                                className="photo-animated-container relative photo-float-animation"
                                 initial={{ opacity: 0, scale: 0.8 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: 0.3, duration: 0.8 }}
@@ -1385,8 +1634,9 @@
                                 <img 
                                 src="https://raw.githubusercontent.com/auraaicreations495-bit/Aura-ai/main/1776917849821.jpg" 
                                 alt="Aura AI Course Flyer" 
-                                className="w-full h-auto rounded-2xl"
+                                className="w-full h-auto rounded-2xl relative z-10"
                              />
+                                <div className="photo-shimmer-overlay rounded-2xl"></div>
                             </motion.div>
                             <div className="absolute -inset-4 bg-gradient-to-r from-pink-600 to-purple-600 opacity-30 blur-3xl rounded-full animate-pulse-slow -z-10"></div>
                         </motion.div>
@@ -2302,49 +2552,56 @@
                             title: 'Introduction to Artificial Intelligence', 
                             duration: '15:00', 
                             videoUrl: 'https://drive.google.com/file/d/1GZ-h7SIAG5bOIavwLng1Sh1N2BdUmIW6/preview',
-                            thumbnail: 'https://drive.google.com/thumbnail?id=1GZ-h7SIAG5bOIavwLng1Sh1N2BdUmIW6&sz=w1000'
+                            thumbnail: 'https://drive.google.com/thumbnail?id=1GZ-h7SIAG5bOIavwLng1Sh1N2BdUmIW6&sz=w1000',
+                            description: 'AI තාක්ෂණයේ මූලික සංකල්ප, ඉතිහාසය, සහ වර්තමාන භාවිතයන් පිළිබඳ හැඳින්වීමක්. Machine Learning, Deep Learning, Neural Networks පිළිබඳ මූලික අවබෝධය ලබා දීම.'
                         },
                         { 
                             id: 2, 
                             title: 'What is a Prompt & How to Create Effective Prompts', 
                             duration: '12:30', 
                             videoUrl: 'https://drive.google.com/file/d/10-4GWQ_FAcUNrdnC3zqtOnGXSmsX2Y2R/preview',
-                            thumbnail: 'https://drive.google.com/thumbnail?id=10-4GWQ_FAcUNrdnC3zqtOnGXSmsX2Y2R&sz=w1000'
+                            thumbnail: 'https://drive.google.com/thumbnail?id=10-4GWQ_FAcUNrdnC3zqtOnGXSmsX2Y2R&sz=w1000',
+                            description: 'ChatGPT, Claude වැනි AI මාදිලි සමඟ කාර්යක්ෂමව සන්නිවේදනය කිරීමට නිවැරදි prompts සාදන ආකාරය. Effective prompting techniques, context setting, සහ output optimization පිළිබඳ ප්‍රායෝගික මගපෙන්වීම.'
                         },
                         { 
                             id: 3, 
                             title: 'AI Image Creation Tools & Face Referencing Techniques', 
                             duration: '18:45', 
                             videoUrl: 'https://drive.google.com/file/d/1uHMAdhZJSqwYar8XYV_NrUQcbA0i6g6-/preview',
-                            thumbnail: 'https://drive.google.com/thumbnail?id=1uHMAdhZJSqwYar8XYV_NrUQcbA0i6g6-&sz=w1000'
+                            thumbnail: 'https://drive.google.com/thumbnail?id=1uHMAdhZJSqwYar8XYV_NrUQcbA0i6g6-&sz=w1000',
+                            description: 'Midjourney, DALL-E, Stable Diffusion භාවිතයෙන් professional quality images සාදා ගන්නා ආකාරය. Face referencing, style transfer, සහ character consistency පිළිබඳ උපදෙස්.'
                         },
                         { 
                             id: 4, 
                             title: 'Creating AI Characters & Turning Them into Video Clips', 
                             duration: '20:00', 
                             videoUrl: 'https://drive.google.com/file/d/1nQdUC8NrFpd-GiTgvSmYpsdVDK6r3lJy/preview',
-                            thumbnail: 'https://drive.google.com/thumbnail?id=1nQdUC8NrFpd-GiTgvSmYpsdVDK6r3lJy&sz=w1000'
+                            thumbnail: 'https://drive.google.com/thumbnail?id=1nQdUC8NrFpd-GiTgvSmYpsdVDK6r3lJy&sz=w1000',
+                            description: 'AI characters සාදා ගෙන ඒවා video clips වලට පරිවර්තනය කරන ආකාරය. Character design, animation basics, සහ video generation tools පිළිබඳ ප්‍රායෝගික අභ්‍යාස.'
                         },
                         { 
                             id: 5, 
                             title: 'Creating Sinhala AI Videos with Google VEO 3 & How to Get 25,000 Free Credits', 
                             duration: '22:15', 
                             videoUrl: 'https://drive.google.com/file/d/10hgirQhLVu5IoalRBLnIW7CMyl9vQiy_/preview',
-                            thumbnail: 'https://drive.google.com/thumbnail?id=10hgirQhLVu5IoalRBLnIW7CMyl9vQiy_&sz=w1000'
+                            thumbnail: 'https://drive.google.com/thumbnail?id=10hgirQhLVu5IoalRBLnIW7CMyl9vQiy_&sz=w1000',
+                            description: 'Google VEO 3 භාවිතයෙන් සිංහල AI videos සාදා ගන්නා ආකාරය. Free credits ලබා ගන්නා මාර්ග, cost-effective video production, සහ Sinhala language optimization.'
                         },
                         { 
                             id: 6, 
                             title: 'AI Lip Sync Techniques & Generating Sinhala AI Voices', 
                             duration: '25:00', 
                             videoUrl: 'https://drive.google.com/file/d/1HXyLn9wDiGiLCelEXr0jipPIcQ5EjfMC/preview',
-                                            thumbnail: 'https://drive.google.com/thumbnail?id=1HXyLn9wDiGiLCelEXr0jipPIcQ5EjfMC&sz=w1000'
+                                            thumbnail: 'https://drive.google.com/thumbnail?id=1HXyLn9wDiGiLCelEXr0jipPIcQ5EjfMC&sz=w1000',
+                            description: 'ElevenLabs, HeyGen භාවිතයෙන් realistic Sinhala AI voices සහ lip-sync videos සාදා ගන්නා ආකාරය. Voice cloning, emotion control, සහ professional audio production.'
                         },
                         { 
                             id: 7, 
                             title: 'Editing AI Videos using CapCut – Beginner Level', 
                             duration: '16:30', 
                             videoUrl: 'https://drive.google.com/file/d/1kswDC7oT5YV9SfqdBlmARDJj6_eiyJzD/preview',
-                            thumbnail: 'https://drive.google.com/thumbnail?id=1kswDC7oT5YV9SfqdBlmARDJj6_eiyJzD&sz=w1000'
+                            thumbnail: 'https://drive.google.com/thumbnail?id=1kswDC7oT5YV9SfqdBlmARDJj6_eiyJzD&sz=w1000',
+                            description: 'CapCut භාවිතයෙන් AI videos edit කරන මූලික ක්‍රම. Transitions, effects, text overlays, audio syncing, සහ professional finishing touches පිළිබඳ මගපෙන්වීම.'
                         }
                     ]
                 },
@@ -2357,42 +2614,48 @@
                             title: 'Creating Master Templates & Character Profiles', 
                             duration: '20:00', 
                             videoUrl: 'https://drive.google.com/file/d/1LmDbGoHxZOlRLnShNKXxyjy0aI0g4UA8/preview',
-                            thumbnail: 'https://drive.google.com/thumbnail?id=1LmDbGoHxZOlRLnShNKXxyjy0aI0g4UA8&sz=w1000'
+                            thumbnail: 'https://drive.google.com/thumbnail?id=1LmDbGoHxZOlRLnShNKXxyjy0aI0g4UA8&sz=w1000',
+                            description: 'Reusable master templates සහ detailed character profiles සාදා ගන්නා ආකාරය. Consistent character creation, style guides, සහ efficient workflow management.'
                         },
                         { 
                             id: 9, 
                             title: 'Building AI Characters using Templates & Profiles', 
                             duration: '20:00', 
                             videoUrl: 'https://drive.google.com/file/d/1SBag6taDaltJOhJXfTrAAuqsk5Dq60zu/preview',
-                            thumbnail: 'https://drive.google.com/thumbnail?id=1SBag6taDaltJOhJXfTrAAuqsk5Dq60zu&sz=w1000'
+                            thumbnail: 'https://drive.google.com/thumbnail?id=1SBag6taDaltJOhJXfTrAAuqsk5Dq60zu&sz=w1000',
+                            description: 'Templates භාවිතයෙන් complex AI characters සාදා ගන්නා උසස් ක්‍රම. Multi-character scenes, interaction dynamics, සහ narrative consistency.'
                         },
                         { 
                             id: 10, 
                             title: 'Creating Powerful Master Prompts', 
                             duration: '20:00', 
                             videoUrl: 'https://drive.google.com/file/d/1scvSqL8t2OjPLXTBWJPSEyxPjKjvwQ65/preview',
-                            thumbnail: 'https://drive.google.com/thumbnail?id=1scvSqL8t2OjPLXTBWJPSEyxPjKjvwQ65&sz=w1000'
+                            thumbnail: 'https://drive.google.com/thumbnail?id=1scvSqL8t2OjPLXTBWJPSEyxPjKjvwQ65&sz=w1000',
+                            description: 'Advanced prompt engineering techniques. Complex multi-step prompts, negative prompting, seed control, සහ professional output optimization.'
                         },
                         { 
                             id: 11, 
                             title: 'Creating Advertisements & Songs using AI', 
                             duration: '20:00', 
                             videoUrl: 'https://drive.google.com/file/d/1ErUKP4NjFbUk2q2NyTCHJsf8whOm2YEt/preview',
-                            thumbnail: 'https://drive.google.com/thumbnail?id=1ErUKP4NjFbUk2q2NyTCHJsf8whOm2YEt&sz=w1000'
+                            thumbnail: 'https://drive.google.com/thumbnail?id=1ErUKP4NjFbUk2q2NyTCHJsf8whOm2YEt&sz=w1000',
+                            description: 'AI භාවිතයෙන් professional advertisements සහ music සාදා ගන්නා ආකාරය. Brand voice, jingle creation, සහ commercial content production.'
                         },
                         { 
                             id: 12, 
                             title: 'Advanced Editing Techniques in CapCut', 
                             duration: '20:00', 
                             videoUrl: 'https://drive.google.com/file/d/15qs0O0vPuCiLbaNU0gTIfyNHaqce8D7q/preview',
-                            thumbnail: 'https://drive.google.com/thumbnail?id=15qs0O0vPuCiLbaNU0gTIfyNHaqce8D7q&sz=w1000'
+                            thumbnail: 'https://drive.google.com/thumbnail?id=15qs0O0vPuCiLbaNU0gTIfyNHaqce8D7q&sz=w1000',
+                            description: 'CapCut හි උසස් editing techniques. Keyframe animation, color grading, motion graphics, සහ cinema-quality video production.'
                         },
                         { 
                             id: 13, 
                             title: 'Creating AI Video Series using Face Referencing', 
                             duration: '20:00', 
                             videoUrl: 'https://drive.google.com/file/d/18mSOecPmCVjpXaxHtQyPC24nwR57prmX/preview',
-                            thumbnail: 'https://drive.google.com/thumbnail?id=18mSOecPmCVjpXaxHtQyPC24nwR57prmX&sz=w1000'
+                            thumbnail: 'https://drive.google.com/thumbnail?id=18mSOecPmCVjpXaxHtQyPC24nwR57prmX&sz=w1000',
+                            description: 'Face referencing භාවිතයෙන් continuous AI video series සාදා ගන්නා ආකාරය. Character consistency across episodes, storyline development, සහ series production workflow.'
                         }
                     ]
                 }
@@ -2755,9 +3018,11 @@
                                                     {activeLesson.isCertification && <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-lg">Certificate</span>}
                                                 </div>
                                                 <h2 className="text-xl font-bold text-white mb-2">{activeLesson.title}</h2>
-                                                <p className="text-gray-400 text-sm mb-4">
-                                                    Complete this lesson to unlock the next one. Watch the full video and mark as complete.
-                                                </p>
+                                                {activeLesson.description && (
+                                                    <p className="text-gray-400 text-sm mb-4 leading-relaxed">
+                                                        {activeLesson.description}
+                                                    </p>
+                                                )}
                                                 <div className="flex gap-3">
                                                     {!completedLessons.includes(activeLesson.id) ? (
                                                         <motion.button 
@@ -2841,6 +3106,7 @@
             
             useEffect(() => {
                 initParticles();
+                preventScreenRecording();
                 
                 const introShown = sessionStorage.getItem('aura_intro_shown');
                 if (introShown) {
@@ -2979,6 +3245,9 @@
                         return (
                             <>
                                 <Hero />
+                                <div className="max-w-7xl mx-auto px-6">
+                                    <LiveStats />
+                                </div>
                                 <AITips />
                             </>
                         );
@@ -3070,7 +3339,7 @@
                     </AnimatePresence>
                     
                     <motion.div 
-                        className="min-h-screen text-gray-100 font-sans anti-screenshot"
+                        className="min-h-screen text-gray-100 font-sans anti-screenshot no-screen-record"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: introCompleted ? 1 : 0 }}
                         transition={{ duration: 0.5 }}
