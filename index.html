@@ -840,38 +840,48 @@
             }
         }
 
-        /* Custom Video Player Styles */
-        .custom-video-player {
+        /* Video Player Styles */
+        .video-player-wrapper {
             position: relative;
             width: 100%;
             background: #000;
             border-radius: 1rem;
             overflow: hidden;
-            cursor: pointer;
         }
 
-        .custom-video-player iframe {
+        .video-player-wrapper iframe {
             width: 100%;
             height: 100%;
             border: none;
             display: block;
         }
 
-        .video-overlay {
+        .video-thumbnail-overlay {
             position: absolute;
             inset: 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .video-thumbnail-overlay:hover {
+            transform: scale(1.02);
+        }
+
+        .video-play-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(0,0,0,0.3);
-            transition: opacity 0.3s ease;
+            transition: background 0.3s ease;
         }
 
-        .video-overlay:hover {
-            background: rgba(0,0,0,0.1);
+        .video-thumbnail-overlay:hover .video-play-overlay {
+            background: rgba(0,0,0,0.2);
         }
 
-        .video-play-btn {
+        .video-play-button {
             width: 80px;
             height: 80px;
             border-radius: 50%;
@@ -882,115 +892,18 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 0 30px rgba(255, 78, 205, 0.5);
+            border: none;
+            outline: none;
         }
 
-        .video-play-btn:hover {
-            transform: scale(1.1);
+        .video-play-button:hover {
+            transform: scale(1.15);
             background: rgba(255, 78, 205, 1);
             box-shadow: 0 0 50px rgba(255, 78, 205, 0.8);
         }
 
-        .video-controls {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 20px;
-            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .custom-video-player:hover .video-controls {
-            opacity: 1;
-        }
-
-        .video-controls.visible {
-            opacity: 1;
-        }
-
-        .video-seek-bar {
-            width: 100%;
-            height: 4px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 2px;
-            cursor: pointer;
-            position: relative;
-            margin-bottom: 10px;
-        }
-
-        .video-seek-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #ff4ecd, #00d4ff);
-            border-radius: 2px;
-            width: 0%;
-            transition: width 0.1s linear;
-        }
-
-        .video-seek-thumb {
-            position: absolute;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            width: 12px;
-            height: 12px;
-            background: #ff4ecd;
-            border-radius: 50%;
-            box-shadow: 0 0 10px rgba(255, 78, 205, 0.8);
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-
-        .video-seek-bar:hover .video-seek-thumb {
-            opacity: 1;
-        }
-
-        .video-control-btns {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .video-control-btn {
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            padding: 5px;
-            transition: all 0.2s;
-            opacity: 0.8;
-        }
-
-        .video-control-btn:hover {
-            opacity: 1;
-            transform: scale(1.1);
-        }
-
-        .video-time {
-            color: white;
-            font-size: 12px;
-            font-family: monospace;
-        }
-
-        .video-volume-container {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .video-volume-slider {
-            width: 60px;
-            height: 4px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 2px;
-            cursor: pointer;
-            position: relative;
-        }
-
-        .video-volume-fill {
-            height: 100%;
-            background: white;
-            border-radius: 2px;
-            width: 100%;
+        .video-play-button:active {
+            transform: scale(0.95);
         }
 
         .lesson-description {
@@ -1005,21 +918,16 @@
             margin-top: 12px;
         }
 
-        @keyframes descFade {
-            0% { opacity: 0; transform: translateY(20px); filter: blur(10px); }
-            100% { opacity: 1; transform: translateY(0); filter: blur(0); }
-        }
-
         /* Fullscreen styles */
-        .custom-video-player:fullscreen {
+        .video-player-wrapper:fullscreen {
             border-radius: 0;
         }
 
-        .custom-video-player:-webkit-full-screen {
+        .video-player-wrapper:-webkit-full-screen {
             border-radius: 0;
         }
 
-        .custom-video-player:-moz-full-screen {
+        .video-player-wrapper:-moz-full-screen {
             border-radius: 0;
         }
     </style>
@@ -2726,15 +2634,11 @@
             );
         };
         
-        // Custom Video Player Component
-        const CustomVideoPlayer = ({ lesson, onComplete }) => {
+        // Simple Video Player Component
+        const VideoPlayer = ({ lesson, onComplete }) => {
             const [isPlaying, setIsPlaying] = useState(false);
-            const [progress, setProgress] = useState(0);
-            const [showControls, setShowControls] = useState(true);
             const [lastTap, setLastTap] = useState(0);
-            const iframeRef = useRef(null);
             const containerRef = useRef(null);
-            const controlsTimeoutRef = useRef(null);
             
             useEffect(() => {
                 // Track view when player loads
@@ -2748,11 +2652,8 @@
                 
                 if (tapLength < 300 && tapLength > 0) {
                     // Double tap detected - toggle fullscreen
+                    e.preventDefault();
                     toggleFullscreen();
-                } else {
-                    // Single tap - toggle play/pause or show controls
-                    setShowControls(true);
-                    resetControlsTimeout();
                 }
                 
                 setLastTap(currentTime);
@@ -2781,38 +2682,15 @@
                 }
             };
             
-            const resetControlsTimeout = () => {
-                if (controlsTimeoutRef.current) {
-                    clearTimeout(controlsTimeoutRef.current);
-                }
-                controlsTimeoutRef.current = setTimeout(() => {
-                    if (isPlaying) {
-                        setShowControls(false);
-                    }
-                }, 3000);
-            };
-            
             const handlePlay = () => {
                 setIsPlaying(true);
-                setShowControls(true);
-                resetControlsTimeout();
-            };
-            
-            const handleSeek = (e) => {
-                const rect = e.currentTarget.getBoundingClientRect();
-                const pos = (e.clientX - rect.left) / rect.width;
-                setProgress(pos * 100);
             };
             
             return (
                 <div 
                     ref={containerRef}
-                    className="custom-video-player aspect-video bg-gray-900 relative"
+                    className="video-player-wrapper aspect-video bg-gray-900 relative"
                     onClick={handleTap}
-                    onMouseMove={() => {
-                        setShowControls(true);
-                        resetControlsTimeout();
-                    }}
                 >
                     {lesson.videoUrl ? (
                         <>
@@ -2832,24 +2710,27 @@
                                             </div>
                                         </div>
                                     )}
-                                    <div className="video-overlay">
-                                        <motion.div 
-                                            className="video-play-btn"
-                                            whileHover={{ scale: 1.1 }}
-                                            whileTap={{ scale: 0.95 }}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handlePlay();
-                                            }}
-                                        >
-                                            <Icon name="play" size={32} className="text-white ml-1" />
-                                        </motion.div>
+                                    <div 
+                                        className="video-thumbnail-overlay"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handlePlay();
+                                        }}
+                                    >
+                                        <div className="video-play-overlay">
+                                            <motion.div 
+                                                className="video-play-button"
+                                                whileHover={{ scale: 1.1 }}
+                                                whileTap={{ scale: 0.95 }}
+                                            >
+                                                <Icon name="play" size={32} className="text-white ml-1" />
+                                            </motion.div>
+                                        </div>
                                     </div>
                                 </div>
                             ) : (
                                 <iframe
-                                    ref={iframeRef}
-                                    src={lesson.videoUrl + (isPlaying ? '?autoplay=1' : '')}
+                                    src={lesson.videoUrl}
                                     className="w-full h-full border-0"
                                     allow="autoplay; encrypted-media; fullscreen"
                                     allowFullScreen
@@ -2868,28 +2749,11 @@
                         </div>
                     )}
                     
-                    {/* Custom Controls */}
-                    <div className={`video-controls ${showControls ? 'visible' : ''}`}>
-                        <div className="video-seek-bar" onClick={handleSeek}>
-                            <div className="video-seek-fill" style={{ width: `${progress}%` }}></div>
-                            <div className="video-seek-thumb" style={{ left: `${progress}%` }}></div>
-                        </div>
-                        <div className="video-control-btns">
-                            <button className="video-control-btn" onClick={(e) => { e.stopPropagation(); setIsPlaying(!isPlaying); }}>
-                                <Icon name={isPlaying ? "pause" : "play"} size={20} />
-                            </button>
-                            <button className="video-control-btn" onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }}>
-                                <Icon name="maximize" size={20} />
-                            </button>
-                            <span className="video-time">{lesson.duration}</span>
-                        </div>
-                    </div>
-                    
                     {/* Double tap hint */}
                     <motion.div 
                         initial={{ opacity: 0 }}
-                        animate={{ opacity: showControls && !isPlaying ? 1 : 0 }}
-                        className="absolute top-4 right-4 bg-black/50 px-3 py-1 rounded-full text-xs text-white/70"
+                        animate={{ opacity: !isPlaying ? 1 : 0 }}
+                        className="absolute top-4 right-4 bg-black/50 px-3 py-1 rounded-full text-xs text-white/70 pointer-events-none"
                     >
                         Double tap for fullscreen
                     </motion.div>
@@ -3304,7 +3168,7 @@
                                 >
                                     {activeLesson ? (
                                         <>
-                                            <CustomVideoPlayer 
+                                            <VideoPlayer 
                                                 lesson={activeLesson} 
                                                 onComplete={handleVideoComplete}
                                             />
