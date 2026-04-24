@@ -58,6 +58,7 @@
                         'btn-shine': 'btnShine 2s linear infinite',
                         'photo-shimmer': 'photoShimmer 3s ease-in-out infinite',
                         'photo-rotate': 'photoRotate 20s linear infinite',
+                        'desc-fade': 'descFade 0.6s ease-out forwards',
                     },
                     keyframes: {
                         gradient: {
@@ -117,6 +118,10 @@
                         photoRotate: {
                             '0%': { transform: 'rotate(0deg)' },
                             '100%': { transform: 'rotate(360deg)' },
+                        },
+                        descFade: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)', filter: 'blur(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)', filter: 'blur(0)' },
                         }
                     }
                 }
@@ -167,10 +172,6 @@
             pointer-events: none;
         }
         
-        .video-progress {
-            background: linear-gradient(90deg, #ff4ecd 0%, #00d4ff 100%);
-        }
-        
         .otp-input {
             letter-spacing: 0.5em;
             text-align: center;
@@ -204,10 +205,6 @@
         
         .logo-container {
             animation: float 6s ease-in-out infinite;
-        }
-        
-        .glow-effect {
-            animation: glow 2s ease-in-out infinite alternate;
         }
         
         .gradient-border {
@@ -842,6 +839,189 @@
                 user-select: none;
             }
         }
+
+        /* Custom Video Player Styles */
+        .custom-video-player {
+            position: relative;
+            width: 100%;
+            background: #000;
+            border-radius: 1rem;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .custom-video-player iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        .video-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.3);
+            transition: opacity 0.3s ease;
+        }
+
+        .video-overlay:hover {
+            background: rgba(0,0,0,0.1);
+        }
+
+        .video-play-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255, 78, 205, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 30px rgba(255, 78, 205, 0.5);
+        }
+
+        .video-play-btn:hover {
+            transform: scale(1.1);
+            background: rgba(255, 78, 205, 1);
+            box-shadow: 0 0 50px rgba(255, 78, 205, 0.8);
+        }
+
+        .video-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .custom-video-player:hover .video-controls {
+            opacity: 1;
+        }
+
+        .video-controls.visible {
+            opacity: 1;
+        }
+
+        .video-seek-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            cursor: pointer;
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .video-seek-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff4ecd, #00d4ff);
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        .video-seek-thumb {
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 12px;
+            height: 12px;
+            background: #ff4ecd;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(255, 78, 205, 0.8);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .video-seek-bar:hover .video-seek-thumb {
+            opacity: 1;
+        }
+
+        .video-control-btns {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .video-control-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 5px;
+            transition: all 0.2s;
+            opacity: 0.8;
+        }
+
+        .video-control-btn:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .video-time {
+            color: white;
+            font-size: 12px;
+            font-family: monospace;
+        }
+
+        .video-volume-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .video-volume-slider {
+            width: 60px;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .video-volume-fill {
+            height: 100%;
+            background: white;
+            border-radius: 2px;
+            width: 100%;
+        }
+
+        .lesson-description {
+            animation: descFade 0.6s ease-out forwards;
+        }
+
+        .lesson-desc-text {
+            background: linear-gradient(135deg, rgba(255,78,205,0.1), rgba(0,212,255,0.1));
+            border-left: 3px solid #ff4ecd;
+            padding: 16px;
+            border-radius: 0 12px 12px 0;
+            margin-top: 12px;
+        }
+
+        @keyframes descFade {
+            0% { opacity: 0; transform: translateY(20px); filter: blur(10px); }
+            100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+
+        /* Fullscreen styles */
+        .custom-video-player:fullscreen {
+            border-radius: 0;
+        }
+
+        .custom-video-player:-webkit-full-screen {
+            border-radius: 0;
+        }
+
+        .custom-video-player:-moz-full-screen {
+            border-radius: 0;
+        }
     </style>
 </head>
 <body>
@@ -1273,7 +1453,7 @@
                             transition={{ duration: 1, type: "spring" }}
                             className="mb-8"
                         >
-                            <div className="w-40 h-40 mx-auto rounded-3xl bg-gradient-to-br from-pink-500 via-purple-500 to-cyan-500 p-1 glow-effect">
+                            <div className="w-40 h-40 mx-auto rounded-3xl bg-gradient-to-br from-pink-500 via-purple-500 to-cyan-500 p-1">
                                 <div className="w-full h-full rounded-3xl bg-gray-900 flex items-center justify-center overflow-hidden">
                                     <img 
                                         src={LOGO_URL} 
@@ -1383,7 +1563,29 @@
                 lastUpdated: new Date()
             });
             
+            const [totalLessons, setTotalLessons] = useState(0);
+            const [totalViews, setTotalViews] = useState(0);
+            
             useEffect(() => {
+                // Calculate total lessons from modules
+                const modules = [
+                    { lessons: [1,2,3,4,5,6,7] },
+                    { lessons: [8,9,10,11,12,13] }
+                ];
+                const lessonCount = modules.reduce((acc, m) => acc + m.lessons.length, 0);
+                setTotalLessons(lessonCount);
+                
+                // Load views from localStorage
+                const savedViews = localStorage.getItem('aura_total_views');
+                if (savedViews) {
+                    setTotalViews(parseInt(savedViews));
+                } else {
+                    // Initialize with a realistic base number
+                    const baseViews = 2847;
+                    localStorage.setItem('aura_total_views', baseViews.toString());
+                    setTotalViews(baseViews);
+                }
+                
                 // Load from localStorage
                 const savedStats = localStorage.getItem('aura_live_stats');
                 if (savedStats) {
@@ -1438,7 +1640,7 @@
                         </div>
                     </div>
                     <div className="live-stat-card rounded-2xl p-4 text-center">
-                        <div className="text-2xl font-bold text-cyan-400 mb-1">7+</div>
+                        <div className="text-2xl font-bold text-cyan-400 mb-1">{totalLessons}</div>
                         <div className="text-gray-400 text-xs">Video Lessons</div>
                     </div>
                 </motion.div>
@@ -1484,7 +1686,7 @@
                             onClick={() => handleNav('home')}
                             whileHover={{ scale: 1.05 }}
                         >
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 via-purple-500 to-cyan-500 flex items-center justify-center overflow-hidden glow-effect">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 via-purple-500 to-cyan-500 flex items-center justify-center overflow-hidden">
                                 <img 
                                     src={LOGO_URL} 
                                     alt="Aura AI Logo" 
@@ -2524,6 +2726,177 @@
             );
         };
         
+        // Custom Video Player Component
+        const CustomVideoPlayer = ({ lesson, onComplete }) => {
+            const [isPlaying, setIsPlaying] = useState(false);
+            const [progress, setProgress] = useState(0);
+            const [showControls, setShowControls] = useState(true);
+            const [lastTap, setLastTap] = useState(0);
+            const iframeRef = useRef(null);
+            const containerRef = useRef(null);
+            const controlsTimeoutRef = useRef(null);
+            
+            useEffect(() => {
+                // Track view when player loads
+                const currentViews = parseInt(localStorage.getItem('aura_total_views') || '0');
+                localStorage.setItem('aura_total_views', (currentViews + 1).toString());
+            }, [lesson.id]);
+            
+            const handleTap = (e) => {
+                const currentTime = new Date().getTime();
+                const tapLength = currentTime - lastTap;
+                
+                if (tapLength < 300 && tapLength > 0) {
+                    // Double tap detected - toggle fullscreen
+                    toggleFullscreen();
+                } else {
+                    // Single tap - toggle play/pause or show controls
+                    setShowControls(true);
+                    resetControlsTimeout();
+                }
+                
+                setLastTap(currentTime);
+            };
+            
+            const toggleFullscreen = () => {
+                const container = containerRef.current;
+                if (!container) return;
+                
+                if (!document.fullscreenElement) {
+                    if (container.requestFullscreen) {
+                        container.requestFullscreen();
+                    } else if (container.webkitRequestFullscreen) {
+                        container.webkitRequestFullscreen();
+                    } else if (container.mozRequestFullScreen) {
+                        container.mozRequestFullScreen();
+                    }
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    } else if (document.mozCancelFullScreen) {
+                        document.mozCancelFullScreen();
+                    }
+                }
+            };
+            
+            const resetControlsTimeout = () => {
+                if (controlsTimeoutRef.current) {
+                    clearTimeout(controlsTimeoutRef.current);
+                }
+                controlsTimeoutRef.current = setTimeout(() => {
+                    if (isPlaying) {
+                        setShowControls(false);
+                    }
+                }, 3000);
+            };
+            
+            const handlePlay = () => {
+                setIsPlaying(true);
+                setShowControls(true);
+                resetControlsTimeout();
+            };
+            
+            const handleSeek = (e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const pos = (e.clientX - rect.left) / rect.width;
+                setProgress(pos * 100);
+            };
+            
+            return (
+                <div 
+                    ref={containerRef}
+                    className="custom-video-player aspect-video bg-gray-900 relative"
+                    onClick={handleTap}
+                    onMouseMove={() => {
+                        setShowControls(true);
+                        resetControlsTimeout();
+                    }}
+                >
+                    {lesson.videoUrl ? (
+                        <>
+                            {!isPlaying ? (
+                                <div className="relative w-full h-full">
+                                    {lesson.thumbnail ? (
+                                        <img 
+                                            src={lesson.thumbnail} 
+                                            alt={lesson.title}
+                                            className="video-thumbnail"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full bg-gradient-to-br from-indigo-900 to-purple-900 flex items-center justify-center">
+                                            <div className="text-center">
+                                                <Icon name="video" size={48} className="text-pink-400 mx-auto mb-4" />
+                                                <p className="text-white font-semibold">{lesson.title}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div className="video-overlay">
+                                        <motion.div 
+                                            className="video-play-btn"
+                                            whileHover={{ scale: 1.1 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handlePlay();
+                                            }}
+                                        >
+                                            <Icon name="play" size={32} className="text-white ml-1" />
+                                        </motion.div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <iframe
+                                    ref={iframeRef}
+                                    src={lesson.videoUrl + (isPlaying ? '?autoplay=1' : '')}
+                                    className="w-full h-full border-0"
+                                    allow="autoplay; encrypted-media; fullscreen"
+                                    allowFullScreen
+                                    title={lesson.title}
+                                ></iframe>
+                            )}
+                        </>
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                            <div className="text-center">
+                                <div className="w-20 h-20 rounded-full bg-pink-500/20 flex items-center justify-center mx-auto mb-4">
+                                    <Icon name="video-off" size={32} className="text-pink-400" />
+                                </div>
+                                <p className="text-gray-400">Video not available yet</p>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {/* Custom Controls */}
+                    <div className={`video-controls ${showControls ? 'visible' : ''}`}>
+                        <div className="video-seek-bar" onClick={handleSeek}>
+                            <div className="video-seek-fill" style={{ width: `${progress}%` }}></div>
+                            <div className="video-seek-thumb" style={{ left: `${progress}%` }}></div>
+                        </div>
+                        <div className="video-control-btns">
+                            <button className="video-control-btn" onClick={(e) => { e.stopPropagation(); setIsPlaying(!isPlaying); }}>
+                                <Icon name={isPlaying ? "pause" : "play"} size={20} />
+                            </button>
+                            <button className="video-control-btn" onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }}>
+                                <Icon name="maximize" size={20} />
+                            </button>
+                            <span className="video-time">{lesson.duration}</span>
+                        </div>
+                    </div>
+                    
+                    {/* Double tap hint */}
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: showControls && !isPlaying ? 1 : 0 }}
+                        className="absolute top-4 right-4 bg-black/50 px-3 py-1 rounded-full text-xs text-white/70"
+                    >
+                        Double tap for fullscreen
+                    </motion.div>
+                </div>
+            );
+        };
+        
         const Dashboard = ({ onLogout }) => {
             const { user } = useContext(AuthContext);
             const [activeModule, setActiveModule] = useState(0);
@@ -2533,8 +2906,6 @@
                 const saved = localStorage.getItem('aura_completed_lessons');
                 return saved ? JSON.parse(saved) : [];
             });
-            const [videoProgress, setVideoProgress] = useState(0);
-            const [watching, setWatching] = useState(false);
             const [showUnlockAnimation, setShowUnlockAnimation] = useState(false);
             const [newlyUnlocked, setNewlyUnlocked] = useState(false);
             
@@ -2698,8 +3069,6 @@
                 }
                 
                 setActiveLesson(lesson);
-                setVideoProgress(0);
-                setWatching(false);
             };
             
             const handleVideoComplete = () => {
@@ -2725,13 +3094,9 @@
                     if (nextLesson) {
                         setTimeout(() => {
                             setActiveLesson(nextLesson);
-                            setVideoProgress(0);
-                            setWatching(false);
                         }, 1000);
                     }
                 }
-                setWatching(false);
-                setVideoProgress(100);
             };
             
             const totalLessons = modules.reduce((acc, m) => acc + m.lessons.length, 0);
@@ -2939,77 +3304,10 @@
                                 >
                                     {activeLesson ? (
                                         <>
-                                            <div className="video-4k-container aspect-video bg-gray-900 relative overflow-hidden">
-                                                {activeLesson.videoUrl ? (
-                                                    <>
-                                                        {!watching ? (
-                                                            <motion.div 
-                                                                className="relative w-full h-full cursor-pointer" 
-                                                                onClick={() => setWatching(true)}
-                                                                whileHover={{ scale: 1.02 }}
-                                                            >
-                                                                {activeLesson.thumbnail ? (
-                                                                    <img 
-                                                                        src={activeLesson.thumbnail} 
-                                                                        alt={activeLesson.title}
-                                                                        className="video-thumbnail"
-                                                                    />
-                                                                ) : (
-                                                                    <div className="w-full h-full bg-gradient-to-br from-indigo-900 to-purple-900 flex items-center justify-center">
-                                                                        <div className="text-center">
-                                                                            <Icon name="video" size={48} className="text-pink-400 mx-auto mb-4" />
-                                                                            <p className="text-white font-semibold">{activeLesson.title}</p>
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center hover:bg-black/30 transition-all">
-                                                                    <motion.div 
-                                                                        className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center"
-                                                                        whileHover={{ scale: 1.1 }}
-                                                                        animate={{ pulse: [1, 1.1, 1] }}
-                                                                        transition={{ repeat: Infinity, duration: 2 }}
-                                                                    >
-                                                                        <Icon name="play" size={32} className="text-white ml-1" />
-                                                                    </motion.div>
-                                                                </div>
-                                                            </motion.div>
-                                                        ) : (
-                                                            <iframe
-                                                                src={activeLesson.videoUrl}
-                                                                className="w-full h-full border-0"
-                                                                allow="autoplay; encrypted-media"
-                                                                allowFullScreen
-                                                                title={activeLesson.title}
-                                                            ></iframe>
-                                                        )}
-                                                    </>
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center">
-                                                        <div className="text-center">
-                                                            <div className="w-20 h-20 rounded-full bg-pink-500/20 flex items-center justify-center mx-auto mb-4">
-                                                                <Icon name="video-off" size={32} className="text-pink-400" />
-                                                            </div>
-                                                            <p className="text-gray-400">Video not available yet</p>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                                
-                                                {activeLesson.videoUrl && watching && (
-                                                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 to-transparent">
-                                                        <div className="h-1 bg-gray-700 rounded-full overflow-hidden mb-2">
-                                                            <motion.div 
-                                                                className="h-full video-progress rounded-full"
-                                                                initial={{ width: 0 }}
-                                                                animate={{ width: `${videoProgress}%` }}
-                                                            ></motion.div>
-                                                        </div>
-                                                        <div className="flex justify-between text-sm text-gray-300">
-                                                            <span>{Math.round(videoProgress)}% watched</span>
-                                                            <span>{activeLesson.duration}</span>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
+                                            <CustomVideoPlayer 
+                                                lesson={activeLesson} 
+                                                onComplete={handleVideoComplete}
+                                            />
                                             
                                             <div className="p-6">
                                                 <div className="flex items-center gap-3 mb-3">
@@ -3019,11 +3317,19 @@
                                                 </div>
                                                 <h2 className="text-xl font-bold text-white mb-2">{activeLesson.title}</h2>
                                                 {activeLesson.description && (
-                                                    <p className="text-gray-400 text-sm mb-4 leading-relaxed">
-                                                        {activeLesson.description}
-                                                    </p>
+                                                    <motion.div 
+                                                        key={activeLesson.id}
+                                                        initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
+                                                        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                                                        transition={{ duration: 0.6, ease: "easeOut" }}
+                                                        className="lesson-desc-text"
+                                                    >
+                                                        <p className="text-gray-300 text-sm leading-relaxed">
+                                                            {activeLesson.description}
+                                                        </p>
+                                                    </motion.div>
                                                 )}
-                                                <div className="flex gap-3">
+                                                <div className="flex gap-3 mt-4">
                                                     {!completedLessons.includes(activeLesson.id) ? (
                                                         <motion.button 
                                                             onClick={handleVideoComplete}
@@ -3286,7 +3592,7 @@
                                             className="glass p-6 rounded-2xl hover:border-pink-500/50 transition-all"
                                             whileHover={{ scale: 1.05, y: -5 }}
                                         >
-                                            <div className="text-3xl font-bold text-white mb-2">7</div>
+                                            <div className="text-3xl font-bold text-white mb-2">13</div>
                                             <div className="text-gray-400">Video Lessons</div>
                                         </motion.div>
                                         <motion.div 
