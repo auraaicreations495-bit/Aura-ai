@@ -21,8 +21,15 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     
+    <!-- PDF Generation Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- Chart.js for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+Sinhala:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+Sinhala:wght@400;500;600;700&family=Cinzel:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
     
     <script>
         tailwind.config = {
@@ -30,6 +37,8 @@
                 extend: {
                     fontFamily: {
                         sans: ['Outfit', 'Noto Sans Sinhala', 'sans-serif'],
+                        cinzel: ['Cinzel', 'serif'],
+                        playfair: ['Playfair Display', 'serif'],
                     },
                     colors: {
                         aura: {
@@ -513,7 +522,7 @@
             height: 100%;
         }
 
-        /* Lesson Item Styles - White transparent box with white text, red on active, green on complete */
+        /* Lesson Item Styles */
         .lesson-item-box {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
@@ -547,47 +556,18 @@
             pointer-events: none;
         }
 
-        .lesson-text {
-            color: #ffffff;
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
+        .lesson-text { color: #ffffff; font-size: 0.875rem; font-weight: 500; }
+        .lesson-text-completed { color: #22c55e !important; font-weight: 600; }
+        .lesson-text-active { color: #ffffff !important; font-weight: 700; }
+        .lesson-text-locked { color: #9ca3af !important; }
 
-        .lesson-text-completed {
-            color: #22c55e !important;
-            font-weight: 600;
-        }
+        .lesson-icon { color: #ffffff; }
+        .lesson-icon-completed { color: #22c55e !important; }
+        .lesson-icon-active { color: #ef4444 !important; }
+        .lesson-icon-locked { color: #6b7280 !important; }
 
-        .lesson-text-active {
-            color: #ffffff !important;
-            font-weight: 700;
-        }
+        .lesson-item-wrapper { margin-bottom: 8px; }
 
-        .lesson-text-locked {
-            color: #9ca3af !important;
-        }
-
-        .lesson-icon {
-            color: #ffffff;
-        }
-
-        .lesson-icon-completed {
-            color: #22c55e !important;
-        }
-
-        .lesson-icon-active {
-            color: #ef4444 !important;
-        }
-
-        .lesson-icon-locked {
-            color: #6b7280 !important;
-        }
-
-        .lesson-item-wrapper {
-            margin-bottom: 8px;
-        }
-
-        /* 4K Video Container */
         .video-4k-container {
             position: relative;
             width: 100%;
@@ -602,21 +582,14 @@
             border: none;
         }
 
-        /* Profile photo auto-remove on back navigation */
-        .profile-photo-container {
-            position: relative;
-        }
-
-        .profile-photo-temp {
-            animation: photoFadeIn 0.3s ease;
-        }
+        .profile-photo-container { position: relative; }
+        .profile-photo-temp { animation: photoFadeIn 0.3s ease; }
 
         @keyframes photoFadeIn {
             from { opacity: 0; transform: scale(0.9); }
             to { opacity: 1; transform: scale(1); }
         }
 
-        /* Animated Buttons */
         .btn-animated {
             position: relative;
             overflow: hidden;
@@ -634,36 +607,21 @@
             transition: left 0.5s;
         }
         
-        .btn-animated:hover::before {
-            left: 100%;
-        }
-        
-        .btn-animated:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        }
-        
-        .btn-animated:active {
-            transform: translateY(-1px);
-        }
+        .btn-animated:hover::before { left: 100%; }
+        .btn-animated:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        .btn-animated:active { transform: translateY(-1px); }
         
         .btn-green {
             background: linear-gradient(135deg, #22c55e, #16a34a);
             box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
         }
-        
-        .btn-green:hover {
-            box-shadow: 0 8px 25px rgba(34, 197, 94, 0.6);
-        }
+        .btn-green:hover { box-shadow: 0 8px 25px rgba(34, 197, 94, 0.6); }
         
         .btn-red {
             background: linear-gradient(135deg, #ef4444, #dc2626);
             box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
         }
-        
-        .btn-red:hover {
-            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.6);
-        }
+        .btn-red:hover { box-shadow: 0 8px 25px rgba(239, 68, 68, 0.6); }
         
         .btn-shine-effect {
             position: relative;
@@ -677,12 +635,7 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: linear-gradient(
-                to right,
-                transparent 0%,
-                rgba(255,255,255,0.1) 50%,
-                transparent 100%
-            );
+            background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
             transform: rotate(30deg);
             animation: btnShine 3s infinite;
         }
@@ -692,7 +645,6 @@
             100% { transform: translateX(100%) rotate(30deg); }
         }
         
-        /* Flyer image on homepage */
         .flyer-container {
             position: relative;
             border-radius: 1.5rem;
@@ -715,7 +667,6 @@
             100% { filter: hue-rotate(360deg); }
         }
         
-        /* Logo styles - NO BORDER BOX */
         .logo-img {
             width: 100%;
             height: 100%;
@@ -735,7 +686,6 @@
             box-shadow: none !important;
         }
         
-        /* Photo animation styles */
         .photo-animated-container {
             position: relative;
             border-radius: 1.5rem;
@@ -762,55 +712,32 @@
         .photo-shimmer-overlay {
             position: absolute;
             inset: 0;
-            background: linear-gradient(
-                105deg,
-                transparent 40%,
-                rgba(255,255,255,0.2) 45%,
-                rgba(255,255,255,0.3) 50%,
-                rgba(255,255,255,0.2) 55%,
-                transparent 60%
-            );
+            background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.2) 45%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0.2) 55%, transparent 60%);
             background-size: 200% 100%;
             animation: photoShimmer 3s ease-in-out infinite;
             pointer-events: none;
             z-index: 10;
         }
         
-        .photo-float-animation {
-            animation: float 6s ease-in-out infinite;
-        }
+        .photo-float-animation { animation: float 6s ease-in-out infinite; }
         
-        /* Screen recording prevention */
-        .screen-protect {
-            position: relative;
-        }
-        
+        .screen-protect { position: relative; }
         .screen-protect::before {
             content: '';
             position: absolute;
             inset: 0;
-            background: repeating-linear-gradient(
-                45deg,
-                transparent,
-                transparent 10px,
-                rgba(0,0,0,0.02) 10px,
-                rgba(0,0,0,0.02) 20px
-            );
+            background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.02) 10px, rgba(0,0,0,0.02) 20px);
             pointer-events: none;
             z-index: 9997;
         }
         
-        /* Live stats styles */
         .live-stat-card {
             background: linear-gradient(135deg, rgba(0,21,62,0.8), rgba(139,92,246,0.2));
             border: 1px solid rgba(255,78,205,0.3);
             backdrop-filter: blur(10px);
         }
         
-        .live-pulse {
-            position: relative;
-        }
-        
+        .live-pulse { position: relative; }
         .live-pulse::after {
             content: '';
             position: absolute;
@@ -830,7 +757,6 @@
             100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
         }
         
-        /* Prevent screen recording */
         @media (prefers-reduced-motion: no-preference) {
             .no-screen-record {
                 -webkit-user-select: none;
@@ -840,7 +766,6 @@
             }
         }
 
-        /* Video Player Styles */
         .video-player-wrapper {
             position: relative;
             width: 100%;
@@ -863,9 +788,7 @@
             transition: all 0.3s ease;
         }
 
-        .video-thumbnail-overlay:hover {
-            transform: scale(1.02);
-        }
+        .video-thumbnail-overlay:hover { transform: scale(1.02); }
 
         .video-play-overlay {
             position: absolute;
@@ -877,9 +800,7 @@
             transition: background 0.3s ease;
         }
 
-        .video-thumbnail-overlay:hover .video-play-overlay {
-            background: rgba(0,0,0,0.2);
-        }
+        .video-thumbnail-overlay:hover .video-play-overlay { background: rgba(0,0,0,0.2); }
 
         .video-play-button {
             width: 80px;
@@ -902,13 +823,9 @@
             box-shadow: 0 0 50px rgba(255, 78, 205, 0.8);
         }
 
-        .video-play-button:active {
-            transform: scale(0.95);
-        }
+        .video-play-button:active { transform: scale(0.95); }
 
-        .lesson-description {
-            animation: descFade 0.6s ease-out forwards;
-        }
+        .lesson-description { animation: descFade 0.6s ease-out forwards; }
 
         .lesson-desc-text {
             background: linear-gradient(135deg, rgba(255,78,205,0.1), rgba(0,212,255,0.1));
@@ -918,23 +835,903 @@
             margin-top: 12px;
         }
 
-        /* Fullscreen styles */
-        .video-player-wrapper:fullscreen {
-            border-radius: 0;
+        .video-player-wrapper:fullscreen { border-radius: 0; }
+        .video-player-wrapper:-webkit-full-screen { border-radius: 0; }
+        .video-player-wrapper:-moz-full-screen { border-radius: 0; }
+
+        /* ======== ENHANCED CERTIFICATE STYLES ======== */
+        .certificate-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 10, 31, 0.95);
+            backdrop-filter: blur(10px);
+            overflow-y: auto;
+            padding: 20px;
         }
 
-        .video-player-wrapper:-webkit-full-screen {
-            border-radius: 0;
+        .certificate-preview {
+            background: #ffffff;
+            position: relative;
+            width: 210mm;
+            min-height: 297mm;
+            padding: 40px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.3);
+            overflow: hidden;
+            color: #333;
         }
 
-        .video-player-wrapper:-moz-full-screen {
-            border-radius: 0;
+        .certificate-inner-border {
+            position: absolute;
+            inset: 12px;
+            border: 2px solid rgba(0, 0, 0, 0.15);
+            pointer-events: none;
+        }
+
+        .certificate-inner-border-2 {
+            position: absolute;
+            inset: 18px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            pointer-events: none;
+        }
+
+        .certificate-corner {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border: 3px solid #000000;
+        }
+
+        .certificate-corner.tl { top: 25px; left: 25px; border-right: none; border-bottom: none; }
+        .certificate-corner.tr { top: 25px; right: 25px; border-left: none; border-bottom: none; }
+        .certificate-corner.bl { bottom: 25px; left: 25px; border-right: none; border-top: none; }
+        .certificate-corner.br { bottom: 25px; right: 25px; border-left: none; border-top: none; }
+
+        .certificate-watermark {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.03;
+            pointer-events: none;
+            font-size: 120px;
+            font-weight: bold;
+            color: #000000;
+            transform: rotate(-30deg);
+            font-family: 'Cinzel', serif;
+            letter-spacing: 15px;
+        }
+
+        .certificate-title {
+            font-family: 'Cinzel', 'Georgia', serif;
+            color: #000000;
+            text-transform: uppercase;
+            letter-spacing: 8px;
+            font-size: 32px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .certificate-subtitle {
+            font-family: 'Playfair Display', 'Georgia', serif;
+            color: #333333;
+            font-size: 16px;
+            text-align: center;
+            letter-spacing: 4px;
+            margin-bottom: 25px;
+            font-style: italic;
+        }
+
+        .certificate-divider {
+            width: 180px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #000000, transparent);
+            margin: 0 auto 25px;
+            position: relative;
+        }
+
+        .certificate-divider::before,
+        .certificate-divider::after {
+            content: '◆';
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #000000;
+            font-size: 10px;
+        }
+
+        .certificate-divider::before { left: -15px; }
+        .certificate-divider::after { right: -15px; }
+
+        .certificate-presented {
+            font-family: 'Playfair Display', serif;
+            color: #555555;
+            font-size: 14px;
+            text-align: center;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .certificate-recipient {
+            font-family: 'Cinzel', 'Georgia', serif;
+            color: #cc0000;
+            font-size: 48px;
+            text-align: center;
+            margin: 20px 0;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .certificate-body {
+            font-family: 'Playfair Display', 'Georgia', serif;
+            color: #333333;
+            font-size: 15px;
+            line-height: 1.8;
+            text-align: center;
+            margin: 30px 50px;
+        }
+
+        .certificate-body strong {
+            color: #000000;
+            font-weight: 600;
+        }
+
+        .certificate-badge-container {
+            text-align: center;
+            margin: 25px 0;
+        }
+
+        .certificate-badge {
+            display: inline-block;
+            background: #000000;
+            color: #ffffff;
+            padding: 10px 30px;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-family: 'Cinzel', serif;
+        }
+
+        .certificate-skills {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 25px 40px;
+        }
+
+        .certificate-skill-tag {
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            color: #000000;
+            padding: 6px 14px;
+            border-radius: 15px;
+            font-size: 11px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .certificate-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 40px;
+            padding: 0 50px;
+            position: relative;
+        }
+
+        .certificate-date, .certificate-signature, .certificate-seal-box {
+            text-align: center;
+            flex: 1;
+        }
+
+        .certificate-signature-line {
+            border-top: 2px solid #000000;
+            width: 140px;
+            margin: 0 auto 6px;
+        }
+
+        .certificate-label {
+            color: #666666;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 4px;
+            font-family: 'Cinzel', serif;
+        }
+
+        .certificate-value {
+            color: #000000;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .certificate-seal {
+            width: 90px;
+            height: 90px;
+            background: #000000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            border: 3px solid #333333;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .certificate-seal::before {
+            content: '';
+            position: absolute;
+            inset: 4px;
+            border: 2px dashed #ffffff;
+            border-radius: 50%;
+        }
+
+        .certificate-seal-inner {
+            text-align: center;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 9px;
+            line-height: 1.3;
+            font-family: 'Cinzel', serif;
+        }
+
+        .certificate-logo-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .certificate-logo-header img {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+            margin-bottom: 8px;
+        }
+
+        .certificate-org-name {
+            color: #000000;
+            font-family: 'Cinzel', serif;
+            font-size: 14px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .certificate-id {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #888888;
+            font-size: 10px;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+        }
+
+        /* Certificate Confetti */
+        .certificate-confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            top: -10px;
+            animation: certificateConfettiFall 5s ease-out forwards;
+            z-index: 10000;
+        }
+
+        @keyframes certificateConfettiFall {
+            0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(1080deg) scale(0.3); opacity: 0; }
+        }
+
+        .download-btn-container {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10001;
+            display: flex;
+            gap: 15px;
+        }
+
+        .certificate-overlay-close {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10001;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 20px;
+        }
+
+        .certificate-overlay-close:hover {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.1) rotate(90deg);
+        }
+
+        /* Completion Celebration Overlay */
+        .completion-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9998;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 10, 31, 0.9);
+            backdrop-filter: blur(20px);
+        }
+
+        .completion-content {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .trophy-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: trophyBounce 2s ease infinite;
+        }
+
+        @keyframes trophyBounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-20px) scale(1.1); }
+        }
+
+        .completion-title {
+            font-family: 'Cinzel', serif;
+            font-size: 36px;
+            color: #ffffff;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 20px rgba(255, 255, 255, 0.2);
+        }
+
+        .completion-subtitle {
+            font-family: 'Playfair Display', serif;
+            font-size: 18px;
+            color: #e0e0e0;
+            margin-bottom: 30px;
+        }
+
+        .completion-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .completion-stat {
+            text-align: center;
+        }
+
+        .completion-stat-value {
+            font-family: 'Cinzel', serif;
+            font-size: 32px;
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+        .completion-stat-label {
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 5px;
+        }
+
+        /* Fireworks Canvas */
+        #fireworks-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9997;
+            pointer-events: none;
+        }
+
+        /* Progress Ring Animation */
+        .progress-ring-circle {
+            transition: stroke-dashoffset 1s ease-in-out;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        /* Responsive certificate */
+        @media (max-width: 950px) {
+            .certificate-preview {
+                width: 100%;
+                max-width: 500px;
+                padding: 25px;
+                min-height: auto;
+            }
+            .certificate-title { font-size: 22px; letter-spacing: 4px; }
+            .certificate-subtitle { font-size: 13px; letter-spacing: 2px; }
+            .certificate-recipient { font-size: 32px; }
+            .certificate-body { font-size: 12px; margin: 15px 15px; }
+            .certificate-footer { flex-direction: column; gap: 20px; align-items: center; margin-top: 25px; padding: 0 15px; }
+            .certificate-seal { width: 70px; height: 70px; }
+            .certificate-skills { margin: 10px 15px; }
+        }
+
+        /* Success animation */
+        .success-checkmark {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: block;
+            stroke-width: 2;
+            stroke: #22c55e;
+            stroke-miterlimit: 10;
+            margin: 10% auto;
+            box-shadow: inset 0px 0px 0px #22c55e;
+            animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both;
+        }
+
+        .checkmark-circle {
+            stroke-dasharray: 166;
+            stroke-dashoffset: 166;
+            stroke-width: 2;
+            stroke-miterlimit: 10;
+            stroke: #22c55e;
+            fill: none;
+            animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+        }
+
+        .checkmark-check {
+            transform-origin: 50% 50%;
+            stroke-dasharray: 48;
+            stroke-dashoffset: 48;
+            animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+        }
+
+        @keyframes stroke { 100% { stroke-dashoffset: 0; } }
+        @keyframes scale { 0%, 100% { transform: none; } 50% { transform: scale3d(1.1, 1.1, 1); } }
+        @keyframes fill { 100% { box-shadow: inset 0px 0px 0px 30px #22c55e; } }
+
+        /* Star field background for certificate */
+        .star-field {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #000000;
+            border-radius: 50%;
+            animation: twinkle 3s ease-in-out infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        /* Holographic effect */
+        .holographic {
+            background: linear-gradient(135deg, 
+                rgba(0,0,0,0.02) 0%, 
+                rgba(255,255,255,0.05) 25%, 
+                rgba(0,0,0,0.02) 50%, 
+                rgba(255,255,255,0.05) 75%, 
+                rgba(0,0,0,0.02) 100%);
+            background-size: 400% 400%;
+            animation: holographicShift 8s ease infinite;
+        }
+
+        @keyframes holographicShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Ripple effect for buttons */
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ripple::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            background-image: radial-gradient(circle, rgba(255,255,255,0.3) 10%, transparent 10.01%);
+            background-repeat: no-repeat;
+            background-position: 50%;
+            transform: scale(10, 10);
+            opacity: 0;
+            transition: transform 0.5s, opacity 1s;
+        }
+
+        .ripple:active::after {
+            transform: scale(0, 0);
+            opacity: 0.3;
+            transition: 0s;
+        }
+
+        /* Magnetic button effect */
+        .magnetic-btn {
+            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        /* Text scramble effect */
+        .scramble-text {
+            font-family: 'Courier New', monospace;
+        }
+
+        /* 3D Card tilt effect */
+        .tilt-card {
+            transform-style: preserve-3d;
+            transform: perspective(1000px);
+        }
+
+        /* Gradient text animation */
+        .animated-gradient-text {
+            background: linear-gradient(90deg, #000000, #333333, #000000, #333333);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientTextMove 3s ease infinite;
+        }
+
+        @keyframes gradientTextMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Particle burst animation */
+        .particle-burst {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        /* Loading shimmer for certificate */
+        .certificate-shimmer {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(105deg, transparent 40%, rgba(0,0,0,0.03) 50%, transparent 60%);
+            background-size: 200% 100%;
+            animation: certShimmer 3s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes certShimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        /* ======== NEW FEATURE STYLES ======== */
+        
+        /* Quiz Styles */
+        .quiz-container {
+            background: rgba(0, 21, 62, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 78, 205, 0.2);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+        
+        .quiz-option {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .quiz-option:hover {
+            background: rgba(255, 78, 205, 0.1);
+            border-color: rgba(255, 78, 205, 0.3);
+        }
+        
+        .quiz-option.selected {
+            background: rgba(255, 78, 205, 0.2);
+            border-color: #ff4ecd;
+        }
+        
+        .quiz-option.correct {
+            background: rgba(34, 197, 94, 0.2);
+            border-color: #22c55e;
+        }
+        
+        .quiz-option.wrong {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: #ef4444;
+        }
+        
+        /* Gamification Styles */
+        .xp-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .xp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff4ecd, #8b5cf6);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .badge-container {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 2rem;
+            font-size: 0.875rem;
+            color: #ffd700;
+        }
+        
+        .streak-flame {
+            animation: flame 1s ease-in-out infinite alternate;
+        }
+        
+        @keyframes flame {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.2); }
+        }
+        
+        /* Leaderboard Styles */
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.75rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .leaderboard-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+        
+        .rank-1 { border-left: 3px solid #ffd700; }
+        .rank-2 { border-left: 3px solid #c0c0c0; }
+        .rank-3 { border-left: 3px solid #cd7f32; }
+        
+        /* Forum Styles */
+        .forum-post {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .forum-post:hover {
+            border-color: rgba(255, 78, 205, 0.3);
+        }
+        
+        /* Portfolio Styles */
+        .portfolio-card {
+            background: linear-gradient(135deg, rgba(0,21,62,0.8), rgba(139,92,246,0.2));
+            border: 1px solid rgba(255,78,205,0.2);
+            border-radius: 1rem;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .portfolio-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(255, 78, 205, 0.2);
+        }
+        
+        /* Analytics Dashboard */
+        .analytics-card {
+            background: rgba(0, 21, 62, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 78, 205, 0.2);
+            border-radius: 1rem;
+            padding: 1.5rem;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 200px;
+            width: 100%;
+        }
+        
+        /* AI Chatbot */
+        .chatbot-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .chatbot-window {
+            width: 350px;
+            height: 500px;
+            background: rgba(0, 21, 62, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 78, 205, 0.3);
+            border-radius: 1rem;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chatbot-header {
+            background: linear-gradient(135deg, #ff4ecd, #8b5cf6);
+            padding: 1rem;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .chatbot-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+        
+        .chatbot-message {
+            max-width: 80%;
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .chatbot-message.user {
+            background: rgba(255, 78, 205, 0.2);
+            margin-left: auto;
+            border-bottom-right-radius: 0.25rem;
+        }
+        
+        .chatbot-message.bot {
+            background: rgba(255, 255, 255, 0.1);
+            margin-right: auto;
+            border-bottom-left-radius: 0.25rem;
+        }
+        
+        .chatbot-input {
+            padding: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .chatbot-input input {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 2rem;
+            color: white;
+            outline: none;
+        }
+        
+        .chatbot-input input:focus {
+            border-color: #ff4ecd;
+        }
+        
+        /* Notification Toast */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            padding: 1rem 1.5rem;
+            background: rgba(0, 21, 62, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 78, 205, 0.3);
+            border-radius: 1rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            animation: slideInRight 0.3s ease;
+        }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* Chapter Markers */
+        .chapter-marker {
+            position: absolute;
+            bottom: 0;
+            width: 4px;
+            height: 100%;
+            background: rgba(255, 78, 205, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .chapter-marker:hover {
+            background: #ff4ecd;
+            width: 6px;
+        }
+        
+        .chapter-marker::after {
+            content: attr(data-title);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .chapter-marker:hover::after {
+            opacity: 1;
+        }
+        
+        /* Note Sync */
+        .note-sync {
+            background: rgba(255, 215, 0, 0.1);
+            border-left: 3px solid #ffd700;
+            padding: 0.75rem 1rem;
+            border-radius: 0 0.5rem 0.5rem 0;
+            margin: 0.5rem 0;
+            font-size: 0.875rem;
+            color: #e0e0e0;
+        }
+        
+        .note-sync .timestamp {
+            color: #ffd700;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+        
+        .note-sync .timestamp:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
     <div id="root"></div>
     <canvas id="canvas-container"></canvas>
+    <canvas id="fireworks-canvas"></canvas>
     <div class="security-overlay"></div>
 
     <script type="text/babel">
@@ -947,6 +1744,7 @@
         
         const LOGO_URL = 'https://raw.githubusercontent.com/auraaicreations495-bit/Aura-ai/2c7f0d2eeb6a30ea3b346267db5c30ede5133b5e/Picsart_26-03-25_22-32-16-893.png';
         
+        // ======== UTILITY FUNCTIONS ========
         const base32Decode = (input) => {
             const cleaned = input.toUpperCase().replace(/[^A-Z2-7]/g, '');
             const result = [];
@@ -1049,6 +1847,7 @@
             return re.test(phone.replace(/\s/g, ''));
         };
         
+        // ======== PARTICLES & FIREWORKS ========
         const initParticles = () => {
             const canvas = document.getElementById('canvas-container');
             const ctx = canvas.getContext('2d');
@@ -1124,7 +1923,150 @@
             };
             animate();
         };
+
+        const initFireworks = () => {
+            const canvas = document.getElementById('fireworks-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            
+            const resize = () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            };
+            resize();
+            window.addEventListener('resize', resize);
+            
+            const fireworks = [];
+            const particles = [];
+            
+            class Firework {
+                constructor(x, targetY, color) {
+                    this.x = x;
+                    this.y = canvas.height;
+                    this.targetY = targetY;
+                    this.speed = 8;
+                    this.color = color;
+                    this.exploded = false;
+                }
+                
+                update() {
+                    this.y -= this.speed;
+                    if (this.y <= this.targetY && !this.exploded) {
+                        this.explode();
+                        this.exploded = true;
+                    }
+                }
+                
+                explode() {
+                    for (let i = 0; i < 50; i++) {
+                        particles.push(new Particle(this.x, this.y, this.color));
+                    }
+                }
+                
+                draw() {
+                    if (!this.exploded) {
+                        ctx.fillStyle = this.color;
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+            }
+            
+            class Particle {
+                constructor(x, y, color) {
+                    this.x = x;
+                    this.y = y;
+                    this.vx = (Math.random() - 0.5) * 8;
+                    this.vy = (Math.random() - 0.5) * 8;
+                    this.life = 1;
+                    this.color = color;
+                    this.size = Math.random() * 3 + 1;
+                }
+                
+                update() {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    this.vy += 0.1;
+                    this.life -= 0.02;
+                }
+                
+                draw() {
+                    ctx.globalAlpha = this.life;
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                }
+            }
+            
+            const colors = ['#ff4ecd', '#00d4ff', '#8b5cf6', '#ffd700', '#22c55e', '#ff6b6b'];
+            
+            const launchFirework = () => {
+                const x = Math.random() * canvas.width;
+                const targetY = Math.random() * (canvas.height * 0.5) + 100;
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                fireworks.push(new Firework(x, targetY, color));
+            };
+            
+            let frameCount = 0;
+            const animate = () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                if (frameCount % 30 === 0) {
+                    launchFirework();
+                }
+                frameCount++;
+                
+                fireworks.forEach((fw, i) => {
+                    fw.update();
+                    fw.draw();
+                    if (fw.exploded) fireworks.splice(i, 1);
+                });
+                
+                particles.forEach((p, i) => {
+                    p.update();
+                    p.draw();
+                    if (p.life <= 0) particles.splice(i, 1);
+                });
+                
+                requestAnimationFrame(animate);
+            };
+            
+            canvas.style.opacity = '0';
+            canvas.style.transition = 'opacity 1s';
+            animate();
+            
+            return {
+                show: () => { canvas.style.opacity = '1'; },
+                hide: () => { canvas.style.opacity = '0'; }
+            };
+        };
         
+        // ======== NOTIFICATIONS ========
+        const showToast = (message, type = 'info') => {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            const colors = {
+                info: '#00d4ff',
+                success: '#22c55e',
+                warning: '#f59e0b',
+                error: '#ef4444'
+            };
+            toast.innerHTML = `
+                <span style="color: ${colors[type]}">●</span>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        };
+        
+        // ======== WHATSAPP NOTIFICATION ========
         const sendWhatsAppNotification = (studentData) => {
             const phone = '94782998357';
             const message = `🔔 *New Registration - Aura AI*%0A%0A` +
@@ -1138,6 +2080,7 @@
             window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
         };
         
+        // ======== DATABASE ========
         const DB_NAME = 'AuraAIDB';
         const DB_VERSION = 1;
         const STORE_NAME = 'users';
@@ -1214,6 +2157,7 @@
             }
         };
         
+        // ======== COOKIES ========
         const setCookie = (name, value, days = 365) => {
             const expires = new Date(Date.now() + days * 864e5).toUTCString();
             document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires + '; path=/; SameSite=Strict';
@@ -1230,39 +2174,32 @@
             setCookie(name, '', -1);
         };
         
-        // Screen recording prevention
+        // ======== SCREEN PROTECTION ========
         const preventScreenRecording = () => {
-            // Disable right-click
             document.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
                 return false;
             });
             
-            // Disable keyboard shortcuts for screenshots
             document.addEventListener('keydown', (e) => {
-                // Print Screen
                 if (e.key === 'PrintScreen') {
                     e.preventDefault();
                     navigator.clipboard.writeText('');
                     alert('Screen recording is not allowed on this website!');
                     return false;
                 }
-                // Ctrl+Shift+S, Ctrl+S, Ctrl+P
                 if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'p' || e.shiftKey && e.key === 's')) {
                     e.preventDefault();
                     return false;
                 }
-                // F12, Ctrl+Shift+I, Ctrl+Shift+J
                 if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'i' || e.key === 'j' || e.key === 'c'))) {
                     e.preventDefault();
                     return false;
                 }
             });
             
-            // Detect visibility change (tab switching during recording)
             document.addEventListener('visibilitychange', () => {
                 if (document.hidden) {
-                    // Clear sensitive content when tab is hidden
                     const videoContainers = document.querySelectorAll('iframe');
                     videoContainers.forEach(iframe => {
                         iframe.style.filter = 'blur(20px)';
@@ -1275,7 +2212,6 @@
                 }
             });
             
-            // Detect dev tools
             const detectDevTools = () => {
                 const threshold = 160;
                 const widthThreshold = window.outerWidth - window.innerWidth > threshold;
@@ -1289,6 +2225,7 @@
             setInterval(detectDevTools, 1000);
         };
         
+        // ======== AI INTRO ANIMATION ========
         const AIIntroAnimation = ({ onComplete }) => {
             const [text, setText] = useState('');
             const [showContent, setShowContent] = useState(false);
@@ -1453,6 +2390,7 @@
             );
         };
         
+        // ======== ICON COMPONENT ========
         const Icon = ({ name, size = 24, className = "" }) => {
             useEffect(() => {
                 if (window.lucide) {
@@ -1463,6 +2401,7 @@
             return <i data-lucide={name} width={size} height={size} className={className} style={{display: 'inline-block'}}></i>;
         };
         
+        // ======== LIVE STATS ========
         const LiveStats = () => {
             const [stats, setStats] = useState({
                 totalVisitors: 1247,
@@ -1475,7 +2414,6 @@
             const [totalViews, setTotalViews] = useState(0);
             
             useEffect(() => {
-                // Calculate total lessons from modules
                 const modules = [
                     { lessons: [1,2,3,4,5,6,7] },
                     { lessons: [8,9,10,11,12,13] }
@@ -1483,18 +2421,15 @@
                 const lessonCount = modules.reduce((acc, m) => acc + m.lessons.length, 0);
                 setTotalLessons(lessonCount);
                 
-                // Load views from localStorage
                 const savedViews = localStorage.getItem('aura_total_views');
                 if (savedViews) {
                     setTotalViews(parseInt(savedViews));
                 } else {
-                    // Initialize with a realistic base number
                     const baseViews = 2847;
                     localStorage.setItem('aura_total_views', baseViews.toString());
                     setTotalViews(baseViews);
                 }
                 
-                // Load from localStorage
                 const savedStats = localStorage.getItem('aura_live_stats');
                 if (savedStats) {
                     setStats(JSON.parse(savedStats));
@@ -1513,7 +2448,7 @@
                         localStorage.setItem('aura_live_stats', JSON.stringify(newStats));
                         return newStats;
                     });
-                }, 20000); // Update every 20 seconds
+                }, 20000);
                 
                 return () => clearInterval(interval);
             }, []);
@@ -1555,6 +2490,7 @@
             );
         };
         
+        // ======== NAVIGATION ========
         const Navigation = () => {
             const { user, logout, isLoggedIn } = useContext(AuthContext);
             const [scrolled, setScrolled] = useState(false);
@@ -1676,6 +2612,7 @@
             );
         };
         
+        // ======== HERO SECTION ========
         const Hero = () => {
             const handleStart = () => {
                 window.dispatchEvent(new CustomEvent('navigate', { detail: 'auth' }));
@@ -1755,6 +2692,7 @@
             );
         };
         
+        // ======== AI TIPS SECTION ========
         const AITips = () => {
             const tips = [
                 {
@@ -1877,6 +2815,7 @@
             );
         };
         
+        // ======== REGISTRATION ========
         const Registration = ({ onSuccess }) => {
             const [step, setStep] = useState(1);
             const [formData, setFormData] = useState({
@@ -1957,7 +2896,14 @@
                             password: formData.password,
                             deviceId: deviceId,
                             registeredAt: new Date().toISOString(),
-                            profilePicture: null
+                            profilePicture: null,
+                            xp: 0,
+                            level: 1,
+                            streak: 0,
+                            badges: [],
+                            completedLessons: [],
+                            notes: [],
+                            bookmarks: []
                         };
                         
                         const localUsers = JSON.parse(localStorage.getItem('aura_users') || '[]');
@@ -2162,6 +3108,7 @@
             );
         };
         
+        // ======== LOGIN ========
         const Login = ({ onSuccess }) => {
             const [formData, setFormData] = useState({ email: '', password: '' });
             const [error, setError] = useState('');
@@ -2324,11 +3271,16 @@
             );
         };
         
+        // ======== PROFILE ========
         const Profile = ({ onLogout }) => {
             const { user, updateUser } = useContext(AuthContext);
             const [previewImage, setPreviewImage] = useState(user?.profilePicture || null);
             const [isUploading, setIsUploading] = useState(false);
             const [showPassword, setShowPassword] = useState(false);
+            const [activeTab, setActiveTab] = useState('profile');
+            const [portfolio, setPortfolio] = useState(() => {
+                return JSON.parse(localStorage.getItem('aura_portfolio_' + user?.email) || '[]');
+            });
             
             useEffect(() => {
                 const loadProfilePicture = async () => {
@@ -2408,6 +3360,7 @@
                         setCookie('aura_current_email', updatedUser.email);
                         setCookie('aura_auth_token', btoa(updatedUser.email + ':' + updatedUser.password));
                         updateUser(updatedUser);
+                        showToast('Profile picture updated!', 'success');
                     };
                     reader.readAsDataURL(file);
                 }
@@ -2431,132 +3384,280 @@
                 updateUser(updatedUser);
             };
             
+            const addPortfolioItem = () => {
+                const title = prompt('Project title:');
+                if (!title) return;
+                const description = prompt('Project description:');
+                const newItem = {
+                    id: Date.now(),
+                    title,
+                    description,
+                    createdAt: new Date().toISOString()
+                };
+                const updated = [...portfolio, newItem];
+                setPortfolio(updated);
+                localStorage.setItem('aura_portfolio_' + user.email, JSON.stringify(updated));
+                showToast('Portfolio item added!', 'success');
+            };
+            
             return (
                 <div className="min-h-screen pt-24 pb-12 px-4">
-                    <div className="max-w-2xl mx-auto">
-                        <motion.div 
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="glass-strong rounded-3xl p-8"
-                        >
-                            <div className="text-center mb-8">
-                                <div className="relative inline-block profile-photo-container">
-                                    <motion.div 
-                                        className="w-32 h-32 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 p-0.5 relative"
-                                        whileHover={{ scale: 1.05 }}
-                                    >
-                                        <div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center overflow-hidden">
-                                            {previewImage ? (
-                                                <img src={previewImage} alt="Profile" className="w-full h-full object-cover profile-photo-temp" />
-                                            ) : (
-                                                <span className="text-4xl font-bold text-white">{user?.name?.[0] || 'U'}</span>
-                                            )}
-                                            
-                                            {isUploading && (
-                                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                                    <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
-                                                        <Icon name="loader" size={24} className="text-white" />
-                                                    </motion.div>
-                                                </div>
+                    <div className="max-w-4xl mx-auto">
+                        <div className="flex gap-4 mb-6 overflow-x-auto">
+                            {['profile', 'portfolio', 'analytics', 'achievements'].map(tab => (
+                                <motion.button
+                                    key={tab}
+                                    onClick={() => setActiveTab(tab)}
+                                    className={`px-4 py-2 rounded-full text-sm font-medium capitalize ${activeTab === tab ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white' : 'glass text-gray-400'}`}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    {tab}
+                                </motion.button>
+                            ))}
+                        </div>
+                        
+                        {activeTab === 'profile' && (
+                            <motion.div 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="glass-strong rounded-3xl p-8"
+                            >
+                                <div className="text-center mb-8">
+                                    <div className="relative inline-block profile-photo-container">
+                                        <motion.div 
+                                            className="w-32 h-32 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 p-0.5 relative"
+                                            whileHover={{ scale: 1.05 }}
+                                        >
+                                            <div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center overflow-hidden">
+                                                {previewImage ? (
+                                                    <img src={previewImage} alt="Profile" className="w-full h-full object-cover profile-photo-temp" />
+                                                ) : (
+                                                    <span className="text-4xl font-bold text-white">{user?.name?.[0] || 'U'}</span>
+                                                )}
+                                                
+                                                {isUploading && (
+                                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                                        <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
+                                                            <Icon name="loader" size={24} className="text-white" />
+                                                        </motion.div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="photo-glow-ring"></div>
+                                        </motion.div>
+                                        
+                                        <div className="absolute bottom-0 right-0 flex gap-2">
+                                            <label className="gallery-upload w-12 h-12 bg-pink-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-pink-700 transition-colors shadow-lg">
+                                                <Icon name="image" size={20} className="text-white" />
+                                                <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+                                            </label>
+                                            {previewImage && (
+                                                <button
+                                                    onClick={handleRemovePhoto}
+                                                    className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-red-700 transition-colors shadow-lg"
+                                                >
+                                                    <Icon name="trash-2" size={18} className="text-white" />
+                                                </button>
                                             )}
                                         </div>
-                                        <div className="photo-glow-ring"></div>
+                                    </div>
+                                    <h2 className="text-2xl font-bold text-white mt-4">{user?.name}</h2>
+                                    <p className="text-gray-400">{user?.email}</p>
+                                    
+                                    <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full glass text-sm text-gray-400">
+                                        <Icon name="smartphone" size={14} className="text-pink-400" />
+                                        <span>Registered Device Active</span>
+                                        <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                                    </div>
+                                </div>
+                                
+                                <div className="space-y-4">
+                                    <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
+                                        <label className="block text-gray-400 text-sm mb-2">Full Name</label>
+                                        <div className="px-4 py-3 rounded-xl bg-gray-800/30 text-white flex items-center gap-3">
+                                            <Icon name="user" size={18} className="text-gray-500" />
+                                            {user?.name}
+                                        </div>
                                     </motion.div>
                                     
-                                    <div className="absolute bottom-0 right-0 flex gap-2">
-                                        <label className="gallery-upload w-12 h-12 bg-pink-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-pink-700 transition-colors shadow-lg">
-                                            <Icon name="image" size={20} className="text-white" />
-                                            <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
-                                        </label>
-                                        {previewImage && (
-                                            <button
-                                                onClick={handleRemovePhoto}
-                                                className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-red-700 transition-colors shadow-lg"
+                                    <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
+                                        <label className="block text-gray-400 text-sm mb-2">Email</label>
+                                        <div className="px-4 py-3 rounded-xl bg-gray-800/30 text-gray-400 flex items-center gap-3">
+                                            <Icon name="mail" size={18} className="text-gray-500" />
+                                            {user?.email}
+                                        </div>
+                                    </motion.div>
+                                    
+                                    <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
+                                        <label className="block text-gray-400 text-sm mb-2">Phone</label>
+                                        <div className="px-4 py-3 rounded-xl bg-gray-800/30 text-white flex items-center gap-3">
+                                            <Icon name="phone" size={18} className="text-gray-500" />
+                                            {user?.phone}
+                                        </div>
+                                    </motion.div>
+                                    
+                                    <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.35 }}>
+                                        <label className="block text-gray-400 text-sm mb-2">Password</label>
+                                        <div className="px-4 py-3 rounded-xl bg-gray-800/30 text-white flex items-center gap-3">
+                                            <Icon name="lock" size={18} className="text-gray-500" />
+                                            <span className="flex-1 font-mono">{showPassword ? user?.password : '••••••••'}</span>
+                                            <button 
+                                                onClick={() => setShowPassword(!showPassword)}
+                                                className="text-gray-400 hover:text-white transition-colors"
                                             >
-                                                <Icon name="trash-2" size={18} className="text-white" />
+                                                <Icon name={showPassword ? "eye-off" : "eye"} size={18} />
                                             </button>
-                                        )}
-                                    </div>
+                                        </div>
+                                    </motion.div>
+                                    
+                                    <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
+                                        <label className="block text-gray-400 text-sm mb-2">Member Since</label>
+                                        <div className="px-4 py-3 rounded-xl bg-gray-800/30 text-gray-400 flex items-center gap-3">
+                                            <Icon name="calendar" size={18} className="text-gray-500" />
+                                            {user?.registeredAt ? new Date(user.registeredAt).toLocaleDateString('en-US', { 
+                                                year: 'numeric', 
+                                                month: 'long', 
+                                                day: 'numeric' 
+                                            }) : 'N/A'}
+                                        </div>
+                                    </motion.div>
                                 </div>
-                                <h2 className="text-2xl font-bold text-white mt-4">{user?.name}</h2>
-                                <p className="text-gray-400">{user?.email}</p>
                                 
-                                <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full glass text-sm text-gray-400">
-                                    <Icon name="smartphone" size={14} className="text-pink-400" />
-                                    <span>Registered Device Active</span>
-                                    <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                                <div className="flex gap-3 mt-8">
+                                    <motion.button 
+                                        onClick={onLogout}
+                                        className="btn-animated btn-red flex-1 py-3 text-white rounded-xl font-medium flex items-center justify-center gap-2"
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                    >
+                                        <Icon name="log-out" size={18} />
+                                        Logout
+                                    </motion.button>
                                 </div>
-                            </div>
-                            
-                            <div className="space-y-4">
-                                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
-                                    <label className="block text-gray-400 text-sm mb-2">Full Name</label>
-                                    <div className="px-4 py-3 rounded-xl bg-gray-800/30 text-white flex items-center gap-3">
-                                        <Icon name="user" size={18} className="text-gray-500" />
-                                        {user?.name}
-                                    </div>
-                                </motion.div>
-                                
-                                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
-                                    <label className="block text-gray-400 text-sm mb-2">Email</label>
-                                    <div className="px-4 py-3 rounded-xl bg-gray-800/30 text-gray-400 flex items-center gap-3">
-                                        <Icon name="mail" size={18} className="text-gray-500" />
-                                        {user?.email}
-                                    </div>
-                                </motion.div>
-                                
-                                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
-                                    <label className="block text-gray-400 text-sm mb-2">Phone</label>
-                                    <div className="px-4 py-3 rounded-xl bg-gray-800/30 text-white flex items-center gap-3">
-                                        <Icon name="phone" size={18} className="text-gray-500" />
-                                        {user?.phone}
-                                    </div>
-                                </motion.div>
-                                
-                                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.35 }}>
-                                    <label className="block text-gray-400 text-sm mb-2">Password</label>
-                                    <div className="px-4 py-3 rounded-xl bg-gray-800/30 text-white flex items-center gap-3">
-                                        <Icon name="lock" size={18} className="text-gray-500" />
-                                        <span className="flex-1 font-mono">{showPassword ? user?.password : '••••••••'}</span>
-                                        <button 
-                                            onClick={() => setShowPassword(!showPassword)}
-                                            className="text-gray-400 hover:text-white transition-colors"
+                            </motion.div>
+                        )}
+                        
+                        {activeTab === 'portfolio' && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="space-y-6"
+                            >
+                                <div className="flex justify-between items-center">
+                                    <h3 className="text-white font-semibold text-xl">My Portfolio</h3>
+                                    <motion.button
+                                        onClick={addPortfolioItem}
+                                        className="btn-animated btn-green px-4 py-2 text-white rounded-lg text-sm"
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                    >
+                                        <Icon name="plus" size={16} />
+                                        Add Project
+                                    </motion.button>
+                                </div>
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    {portfolio.map(item => (
+                                        <motion.div
+                                            key={item.id}
+                                            initial={{ opacity: 0, scale: 0.9 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            className="portfolio-card p-6"
                                         >
-                                            <Icon name={showPassword ? "eye-off" : "eye"} size={18} />
-                                        </button>
+                                            <h4 className="text-white font-semibold mb-2">{item.title}</h4>
+                                            <p className="text-gray-400 text-sm">{item.description}</p>
+                                            <p className="text-gray-500 text-xs mt-2">
+                                                {new Date(item.createdAt).toLocaleDateString()}
+                                            </p>
+                                        </motion.div>
+                                    ))}
+                                    {portfolio.length === 0 && (
+                                        <div className="col-span-2 text-center py-12 text-gray-500">
+                                            <Icon name="folder" size={48} className="mx-auto mb-4" />
+                                            <p>No projects yet. Add your first AI project!</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </motion.div>
+                        )}
+                        
+                        {activeTab === 'analytics' && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="space-y-6"
+                            >
+                                <h3 className="text-white font-semibold text-xl">Learning Analytics</h3>
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    <div className="analytics-card">
+                                        <h4 className="text-gray-400 text-sm mb-4">Weekly Progress</h4>
+                                        <div className="chart-container">
+                                            <canvas id="progressChart"></canvas>
+                                        </div>
                                     </div>
-                                </motion.div>
-                                
-                                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
-                                    <label className="block text-gray-400 text-sm mb-2">Member Since</label>
-                                    <div className="px-4 py-3 rounded-xl bg-gray-800/30 text-gray-400 flex items-center gap-3">
-                                        <Icon name="calendar" size={18} className="text-gray-500" />
-                                        {user?.registeredAt ? new Date(user.registeredAt).toLocaleDateString('en-US', { 
-                                            year: 'numeric', 
-                                            month: 'long', 
-                                            day: 'numeric' 
-                                        }) : 'N/A'}
+                                    <div className="analytics-card">
+                                        <h4 className="text-gray-400 text-sm mb-4">Skill Distribution</h4>
+                                        <div className="chart-container">
+                                            <canvas id="skillChart"></canvas>
+                                        </div>
                                     </div>
-                                </motion.div>
-                            </div>
-                            
-                            <div className="flex gap-3 mt-8">
-                                <motion.button 
-                                    onClick={onLogout}
-                                    className="btn-animated btn-red flex-1 py-3 text-white rounded-xl font-medium flex items-center justify-center gap-2"
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
-                                >
-                                    <Icon name="log-out" size={18} />
-                                    Logout
-                                </motion.button>
-                            </div>
-                        </motion.div>
+                                </div>
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div className="analytics-card text-center">
+                                        <div className="text-3xl font-bold text-pink-400">{user?.xp || 0}</div>
+                                        <div className="text-gray-400 text-sm">Total XP</div>
+                                    </div>
+                                    <div className="analytics-card text-center">
+                                        <div className="text-3xl font-bold text-purple-400">{user?.level || 1}</div>
+                                        <div className="text-gray-400 text-sm">Level</div>
+                                    </div>
+                                    <div className="analytics-card text-center">
+                                        <div className="text-3xl font-bold text-green-400">{user?.streak || 0}</div>
+                                        <div className="text-gray-400 text-sm">Day Streak</div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                        
+                        {activeTab === 'achievements' && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="space-y-6"
+                            >
+                                <h3 className="text-white font-semibold text-xl">Achievements</h3>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    {[
+                                        { name: 'First Steps', desc: 'Complete first lesson', icon: 'footprints', unlocked: true },
+                                        { name: 'Speed Learner', desc: 'Complete 5 lessons in one day', icon: 'zap', unlocked: false },
+                                        { name: 'Quiz Master', desc: 'Score 100% on a quiz', icon: 'brain', unlocked: false },
+                                        { name: 'Project Pro', desc: 'Submit first project', icon: 'folder', unlocked: false },
+                                        { name: 'Streak King', desc: '7 day streak', icon: 'flame', unlocked: false },
+                                        { name: 'AI Expert', desc: 'Complete all lessons', icon: 'award', unlocked: false },
+                                        { name: 'Helper', desc: 'Answer 10 forum questions', icon: 'help-circle', unlocked: false },
+                                        { name: 'Networker', desc: 'Connect with 5 students', icon: 'users', unlocked: false }
+                                    ].map((badge, idx) => (
+                                        <motion.div
+                                            key={idx}
+                                            initial={{ opacity: 0, scale: 0.9 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            transition={{ delay: idx * 0.1 }}
+                                            className={`p-4 rounded-xl text-center ${badge.unlocked ? 'bg-gradient-to-br from-pink-500/20 to-purple-500/20 border border-pink-500/30' : 'glass opacity-50'}`}
+                                        >
+                                            <Icon name={badge.icon} size={32} className={badge.unlocked ? 'text-pink-400 mx-auto mb-2' : 'text-gray-600 mx-auto mb-2'} />
+                                            <h4 className={`text-sm font-semibold ${badge.unlocked ? 'text-white' : 'text-gray-500'}`}>{badge.name}</h4>
+                                            <p className="text-xs text-gray-500">{badge.desc}</p>
+                                        </motion.div>
+                                    ))}
+                                </div>
+                            </motion.div>
+                        )}
                     </div>
                 </div>
             );
         };
         
+        // ======== AUTH PAGE ========
         const AuthPage = ({ onLogin }) => {
             const [isLogin, setIsLogin] = useState(true);
             
@@ -2607,6 +3708,371 @@
             );
         };
         
+        // ======== QUIZ COMPONENT ========
+        const QuizSystem = ({ lessonId, onComplete }) => {
+            const [currentQuestion, setCurrentQuestion] = useState(0);
+            const [selectedAnswer, setSelectedAnswer] = useState(null);
+            const [score, setScore] = useState(0);
+            const [showResult, setShowResult] = useState(false);
+            
+            const quizzes = {
+                1: [
+                    {
+                        question: "What is Artificial Intelligence?",
+                        options: [
+                            "A type of computer hardware",
+                            "Simulation of human intelligence by machines",
+                            "A programming language",
+                            "A social media platform"
+                        ],
+                        correct: 1
+                    },
+                    {
+                        question: "Which of these is NOT a type of AI?",
+                        options: [
+                            "Machine Learning",
+                            "Deep Learning",
+                            "Neural Networks",
+                            "Social Networking"
+                        ],
+                        correct: 3
+                    }
+                ],
+                2: [
+                    {
+                        question: "What is a 'prompt' in AI?",
+                        options: [
+                            "A type of computer virus",
+                            "Instructions given to an AI model",
+                            "A hardware component",
+                            "A social media post"
+                        ],
+                        correct: 1
+                    }
+                ]
+            };
+            
+            const quiz = quizzes[lessonId] || [];
+            
+            const handleAnswer = (index) => {
+                setSelectedAnswer(index);
+            };
+            
+            const handleNext = () => {
+                if (selectedAnswer === quiz[currentQuestion].correct) {
+                    setScore(score + 1);
+                }
+                
+                if (currentQuestion < quiz.length - 1) {
+                    setCurrentQuestion(currentQuestion + 1);
+                    setSelectedAnswer(null);
+                } else {
+                    setShowResult(true);
+                    if (score + (selectedAnswer === quiz[currentQuestion].correct ? 1 : 0) >= quiz.length * 0.7) {
+                        onComplete?.();
+                        showToast('Quiz passed! +50 XP', 'success');
+                    }
+                }
+            };
+            
+            if (quiz.length === 0) return null;
+            
+            if (showResult) {
+                return (
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="quiz-container text-center"
+                    >
+                        <h3 className="text-white font-semibold text-xl mb-4">Quiz Complete!</h3>
+                        <div className="text-4xl font-bold text-pink-400 mb-2">{score}/{quiz.length}</div>
+                        <p className="text-gray-400 mb-4">
+                            {score >= quiz.length * 0.7 ? 'Congratulations! You passed!' : 'Keep learning and try again!'}
+                        </p>
+                        {score >= quiz.length * 0.7 && (
+                            <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className="badge-container inline-flex mb-4"
+                            >
+                                <Icon name="award" size={16} />
+                                <span>Quiz Master Badge Earned!</span>
+                            </motion.div>
+                        )}
+                    </motion.div>
+                );
+            }
+            
+            return (
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="quiz-container"
+                >
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-white font-semibold">Lesson Quiz</h3>
+                        <span className="text-gray-400 text-sm">Question {currentQuestion + 1}/{quiz.length}</span>
+                    </div>
+                    
+                    <p className="text-white mb-4">{quiz[currentQuestion].question}</p>
+                    
+                    <div className="space-y-2">
+                        {quiz[currentQuestion].options.map((option, idx) => (
+                            <motion.div
+                                key={idx}
+                                onClick={() => handleAnswer(idx)}
+                                className={`quiz-option ${selectedAnswer === idx ? 'selected' : ''}`}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${selectedAnswer === idx ? 'border-pink-500 bg-pink-500/20' : 'border-gray-500'}`}>
+                                        {selectedAnswer === idx && <div className="w-3 h-3 rounded-full bg-pink-500"></div>}
+                                    </div>
+                                    <span className="text-gray-300">{option}</span>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                    
+                    <motion.button
+                        onClick={handleNext}
+                        disabled={selectedAnswer === null}
+                        className="btn-animated btn-green w-full mt-4 py-3 text-white rounded-xl font-medium disabled:opacity-50"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                    >
+                        {currentQuestion < quiz.length - 1 ? 'Next Question' : 'Finish Quiz'}
+                    </motion.button>
+                </motion.div>
+            );
+        };
+        
+        // ======== AI CHATBOT ========
+        const AIChatbot = () => {
+            const [isOpen, setIsOpen] = useState(false);
+            const [messages, setMessages] = useState([
+                { type: 'bot', text: 'Hi! I am your AI learning assistant. How can I help you today?' }
+            ]);
+            const [input, setInput] = useState('');
+            
+            const handleSend = () => {
+                if (!input.trim()) return;
+                
+                const userMessage = { type: 'user', text: input };
+                setMessages([...messages, userMessage]);
+                
+                // Simple AI responses
+                const responses = {
+                    'hello': 'Hello! Ready to learn AI today?',
+                    'help': 'I can help you with:\n- Lesson explanations\n- Quiz hints\n- Study tips\n- Technical questions',
+                    'quiz': 'Make sure to watch the full video before attempting the quiz!',
+                    'certificate': 'Complete all lessons to earn your professional certificate!',
+                    'stuck': 'Try rewatching the video or check the lesson notes section.',
+                    'default': 'That is a great question! I recommend reviewing the lesson materials or asking in the discussion forum.'
+                };
+                
+                const lowerInput = input.toLowerCase();
+                let response = responses.default;
+                
+                Object.keys(responses).forEach(key => {
+                    if (lowerInput.includes(key)) {
+                        response = responses[key];
+                    }
+                });
+                
+                setTimeout(() => {
+                    setMessages(prev => [...prev, { type: 'bot', text: response }]);
+                }, 1000);
+                
+                setInput('');
+            };
+            
+            return (
+                <div className="chatbot-container">
+                    <motion.button
+                        onClick={() => setIsOpen(!isOpen)}
+                        className="w-14 h-14 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center shadow-lg"
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                    >
+                        <Icon name={isOpen ? 'x' : 'message-circle'} size={24} className="text-white" />
+                    </motion.button>
+                    
+                    <AnimatePresence>
+                        {isOpen && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: 20, scale: 0.9 }}
+                                className="chatbot-window absolute bottom-16 right-0"
+                            >
+                                <div className="chatbot-header flex items-center gap-2">
+                                    <Icon name="bot" size={20} />
+                                    <span>AI Learning Assistant</span>
+                                </div>
+                                
+                                <div className="chatbot-messages">
+                                    {messages.map((msg, idx) => (
+                                        <div key={idx} className={`chatbot-message ${msg.type}`}>
+                                            {msg.text}
+                                        </div>
+                                    ))}
+                                </div>
+                                
+                                <div className="chatbot-input">
+                                    <input
+                                        type="text"
+                                        placeholder="Ask me anything..."
+                                        value={input}
+                                        onChange={(e) => setInput(e.target.value)}
+                                        onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                                    />
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+            );
+        };
+        
+        // ======== FORUM COMPONENT ========
+        const DiscussionForum = ({ lessonId }) => {
+            const [posts, setPosts] = useState(() => {
+                return JSON.parse(localStorage.getItem('aura_forum_' + lessonId) || '[]');
+            });
+            const [newPost, setNewPost] = useState('');
+            
+            const handlePost = () => {
+                if (!newPost.trim()) return;
+                
+                const post = {
+                    id: Date.now(),
+                    text: newPost,
+                    author: JSON.parse(localStorage.getItem('aura_current_user') || '{}').name || 'Anonymous',
+                    timestamp: new Date().toISOString(),
+                    likes: 0
+                };
+                
+                const updated = [post, ...posts];
+                setPosts(updated);
+                localStorage.setItem('aura_forum_' + lessonId, JSON.stringify(updated));
+                setNewPost('');
+                showToast('Post added!', 'success');
+            };
+            
+            const handleLike = (postId) => {
+                const updated = posts.map(p => 
+                    p.id === postId ? { ...p, likes: p.likes + 1 } : p
+                );
+                setPosts(updated);
+                localStorage.setItem('aura_forum_' + lessonId, JSON.stringify(updated));
+            };
+            
+            return (
+                <div className="mt-6">
+                    <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+                        <Icon name="message-square" size={20} />
+                        Discussion Forum
+                    </h3>
+                    
+                    <div className="mb-4">
+                        <textarea
+                            className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:border-pink-500 focus:outline-none resize-none"
+                            rows="3"
+                            placeholder="Ask a question or share your thoughts..."
+                            value={newPost}
+                            onChange={(e) => setNewPost(e.target.value)}
+                        />
+                        <motion.button
+                            onClick={handlePost}
+                            className="btn-animated btn-green mt-2 px-4 py-2 text-white rounded-lg text-sm"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                        >
+                            <Icon name="send" size={16} />
+                            Post
+                        </motion.button>
+                    </div>
+                    
+                    <div className="space-y-3">
+                        {posts.map(post => (
+                            <motion.div
+                                key={post.id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="forum-post"
+                            >
+                                <div className="flex justify-between items-start mb-2">
+                                    <span className="text-pink-400 text-sm font-medium">{post.author}</span>
+                                    <span className="text-gray-500 text-xs">
+                                        {new Date(post.timestamp).toLocaleDateString()}
+                                    </span>
+                                </div>
+                                <p className="text-gray-300 text-sm mb-2">{post.text}</p>
+                                <button
+                                    onClick={() => handleLike(post.id)}
+                                    className="flex items-center gap-1 text-gray-500 text-xs hover:text-pink-400 transition-colors"
+                                >
+                                    <Icon name="heart" size={14} />
+                                    {post.likes}
+                                </button>
+                            </motion.div>
+                        ))}
+                        {posts.length === 0 && (
+                            <p className="text-gray-500 text-center py-4">No discussions yet. Be the first to post!</p>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+        
+        // ======== LEADERBOARD ========
+        const Leaderboard = () => {
+            const [students, setStudents] = useState(() => {
+                const users = JSON.parse(localStorage.getItem('aura_users') || '[]');
+                return users.sort((a, b) => (b.xp || 0) - (a.xp || 0)).slice(0, 10);
+            });
+            
+            return (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="glass-strong rounded-2xl p-6 mb-6"
+                >
+                    <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+                        <Icon name="trophy" size={20} className="text-yellow-400" />
+                        Leaderboard
+                    </h3>
+                    
+                    <div className="space-y-2">
+                        {students.map((student, idx) => (
+                            <motion.div
+                                key={student.email}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: idx * 0.1 }}
+                                className={`leaderboard-item rank-${idx + 1}`}
+                            >
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center text-white text-sm font-bold">
+                                    {idx + 1}
+                                </div>
+                                <div className="flex-1">
+                                    <div className="text-white text-sm font-medium">{student.name}</div>
+                                    <div className="text-gray-500 text-xs">Level {student.level || 1}</div>
+                                </div>
+                                <div className="text-pink-400 font-semibold text-sm">{student.xp || 0} XP</div>
+                            </motion.div>
+                        ))}
+                        {students.length === 0 && (
+                            <p className="text-gray-500 text-center py-4">No students yet. Be the first!</p>
+                        )}
+                    </div>
+                </motion.div>
+            );
+        };
+        
+        // ======== LESSON ITEM ========
         const LessonItem = ({ lesson, isCompleted, isLocked, isActive, onClick }) => {
             return (
                 <div className="lesson-item-wrapper">
@@ -2634,14 +4100,21 @@
             );
         };
         
-        // Simple Video Player Component
+        // ======== VIDEO PLAYER ========
         const VideoPlayer = ({ lesson, onComplete }) => {
             const [isPlaying, setIsPlaying] = useState(false);
             const [lastTap, setLastTap] = useState(0);
+            const [bookmarks, setBookmarks] = useState(() => {
+                return JSON.parse(localStorage.getItem('aura_bookmarks_' + lesson.id) || '[]');
+            });
+            const [notes, setNotes] = useState(() => {
+                return JSON.parse(localStorage.getItem('aura_notes_' + lesson.id) || '[]');
+            });
+            const [newNote, setNewNote] = useState('');
+            const [showNotes, setShowNotes] = useState(false);
             const containerRef = useRef(null);
             
             useEffect(() => {
-                // Track view when player loads
                 const currentViews = parseInt(localStorage.getItem('aura_total_views') || '0');
                 localStorage.setItem('aura_total_views', (currentViews + 1).toString());
             }, [lesson.id]);
@@ -2651,7 +4124,6 @@
                 const tapLength = currentTime - lastTap;
                 
                 if (tapLength < 300 && tapLength > 0) {
-                    // Double tap detected - toggle fullscreen
                     e.preventDefault();
                     toggleFullscreen();
                 }
@@ -2686,94 +4158,587 @@
                 setIsPlaying(true);
             };
             
+            const addBookmark = () => {
+                const bookmark = {
+                    id: Date.now(),
+                    timestamp: new Date().toLocaleTimeString(),
+                    title: 'Bookmark ' + (bookmarks.length + 1)
+                };
+                const updated = [...bookmarks, bookmark];
+                setBookmarks(updated);
+                localStorage.setItem('aura_bookmarks_' + lesson.id, JSON.stringify(updated));
+                showToast('Bookmark added!', 'success');
+            };
+            
+            const addNote = () => {
+                if (!newNote.trim()) return;
+                const note = {
+                    id: Date.now(),
+                    text: newNote,
+                    timestamp: new Date().toLocaleTimeString()
+                };
+                const updated = [...notes, note];
+                setNotes(updated);
+                localStorage.setItem('aura_notes_' + lesson.id, JSON.stringify(updated));
+                setNewNote('');
+                showToast('Note saved!', 'success');
+            };
+            
             return (
-                <div 
-                    ref={containerRef}
-                    className="video-player-wrapper aspect-video bg-gray-900 relative"
-                    onClick={handleTap}
-                >
-                    {lesson.videoUrl ? (
-                        <>
-                            {!isPlaying ? (
-                                <div className="relative w-full h-full">
-                                    {lesson.thumbnail ? (
-                                        <img 
-                                            src={lesson.thumbnail} 
-                                            alt={lesson.title}
-                                            className="video-thumbnail"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full bg-gradient-to-br from-indigo-900 to-purple-900 flex items-center justify-center">
-                                            <div className="text-center">
-                                                <Icon name="video" size={48} className="text-pink-400 mx-auto mb-4" />
-                                                <p className="text-white font-semibold">{lesson.title}</p>
+                <div>
+                    <div 
+                        ref={containerRef}
+                        className="video-player-wrapper aspect-video bg-gray-900 relative"
+                        onClick={handleTap}
+                    >
+                        {lesson.videoUrl ? (
+                            <>
+                                {!isPlaying ? (
+                                    <div className="relative w-full h-full">
+                                        {lesson.thumbnail ? (
+                                            <img 
+                                                src={lesson.thumbnail} 
+                                                alt={lesson.title}
+                                                className="video-thumbnail"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full bg-gradient-to-br from-indigo-900 to-purple-900 flex items-center justify-center">
+                                                <div className="text-center">
+                                                    <Icon name="video" size={48} className="text-pink-400 mx-auto mb-4" />
+                                                    <p className="text-white font-semibold">{lesson.title}</p>
+                                                </div>
+                                            </div>
+                                        )}
+                                        <div 
+                                            className="video-thumbnail-overlay"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handlePlay();
+                                            }}
+                                        >
+                                            <div className="video-play-overlay">
+                                                <motion.div 
+                                                    className="video-play-button"
+                                                    whileHover={{ scale: 1.1 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                >
+                                                    <Icon name="play" size={32} className="text-white ml-1" />
+                                                </motion.div>
                                             </div>
                                         </div>
-                                    )}
-                                    <div 
-                                        className="video-thumbnail-overlay"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handlePlay();
-                                        }}
-                                    >
-                                        <div className="video-play-overlay">
-                                            <motion.div 
-                                                className="video-play-button"
-                                                whileHover={{ scale: 1.1 }}
-                                                whileTap={{ scale: 0.95 }}
-                                            >
-                                                <Icon name="play" size={32} className="text-white ml-1" />
-                                            </motion.div>
-                                        </div>
+                                    </div>
+                                ) : (
+                                    <iframe
+                                        src={lesson.videoUrl}
+                                        className="w-full h-full border-0"
+                                        allow="autoplay; encrypted-media; fullscreen"
+                                        allowFullScreen
+                                        title={lesson.title}
+                                    ></iframe>
+                                )}
+                            </>
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                                <div className="text-center">
+                                    <div className="w-20 h-20 rounded-full bg-pink-500/20 flex items-center justify-center mx-auto mb-4">
+                                        <Icon name="video-off" size={32} className="text-pink-400" />
+                                    </div>
+                                    <p className="text-gray-400">Video not available yet</p>
+                                </div>
+                            </div>
+                        )}
+                        
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: !isPlaying ? 1 : 0 }}
+                            className="absolute top-4 right-4 bg-black/50 px-3 py-1 rounded-full text-xs text-white/70 pointer-events-none"
+                        >
+                            Double tap for fullscreen
+                        </motion.div>
+                        
+                        {/* Chapter Markers */}
+                        {lesson.chapters && (
+                            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-800">
+                                {lesson.chapters.map((chapter, idx) => (
+                                    <div
+                                        key={idx}
+                                        className="chapter-marker"
+                                        style={{ left: `${chapter.position}%` }}
+                                        data-title={chapter.title}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                    
+                    {/* Video Controls */}
+                    <div className="flex gap-2 mt-4">
+                        <motion.button
+                            onClick={addBookmark}
+                            className="glass px-3 py-2 rounded-lg text-sm text-gray-300 flex items-center gap-2"
+                            whileHover={{ scale: 1.05 }}
+                        >
+                            <Icon name="bookmark" size={16} />
+                            Bookmark
+                        </motion.button>
+                        <motion.button
+                            onClick={() => setShowNotes(!showNotes)}
+                            className="glass px-3 py-2 rounded-lg text-sm text-gray-300 flex items-center gap-2"
+                            whileHover={{ scale: 1.05 }}
+                        >
+                            <Icon name="file-text" size={16} />
+                            Notes ({notes.length})
+                        </motion.button>
+                    </div>
+                    
+                    {/* Notes Section */}
+                    <AnimatePresence>
+                        {showNotes && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="mt-4"
+                            >
+                                <div className="glass rounded-xl p-4">
+                                    <h4 className="text-white font-semibold mb-3">My Notes</h4>
+                                    <div className="space-y-2 mb-3">
+                                        {notes.map(note => (
+                                            <div key={note.id} className="note-sync">
+                                                <span className="timestamp">{note.timestamp}</span>
+                                                <p className="mt-1">{note.text}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            className="flex-1 px-3 py-2 rounded-lg bg-gray-800/50 border border-gray-700 text-white text-sm focus:border-pink-500 focus:outline-none"
+                                            placeholder="Add a note..."
+                                            value={newNote}
+                                            onChange={(e) => setNewNote(e.target.value)}
+                                            onKeyPress={(e) => e.key === 'Enter' && addNote()}
+                                        />
+                                        <motion.button
+                                            onClick={addNote}
+                                            className="btn-animated btn-green px-4 py-2 text-white rounded-lg text-sm"
+                                            whileHover={{ scale: 1.05 }}
+                                            whileTap={{ scale: 0.95 }}
+                                        >
+                                            <Icon name="plus" size={16} />
+                                        </motion.button>
                                     </div>
                                 </div>
-                            ) : (
-                                <iframe
-                                    src={lesson.videoUrl}
-                                    className="w-full h-full border-0"
-                                    allow="autoplay; encrypted-media; fullscreen"
-                                    allowFullScreen
-                                    title={lesson.title}
-                                ></iframe>
-                            )}
-                        </>
-                    ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                            <div className="text-center">
-                                <div className="w-20 h-20 rounded-full bg-pink-500/20 flex items-center justify-center mx-auto mb-4">
-                                    <Icon name="video-off" size={32} className="text-pink-400" />
-                                </div>
-                                <p className="text-gray-400">Video not available yet</p>
-                            </div>
-                        </div>
-                    )}
-                    
-                    {/* Double tap hint */}
-                    <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: !isPlaying ? 1 : 0 }}
-                        className="absolute top-4 right-4 bg-black/50 px-3 py-1 rounded-full text-xs text-white/70 pointer-events-none"
-                    >
-                        Double tap for fullscreen
-                    </motion.div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
             );
         };
+
+        // ======== COMPLETION CELEBRATION ========
+        const CompletionCelebration = ({ user, onComplete, stats }) => {
+            const [count, setCount] = useState(0);
+            
+            useEffect(() => {
+                const timer = setInterval(() => {
+                    setCount(prev => {
+                        if (prev >= 100) {
+                            clearInterval(timer);
+                            return 100;
+                        }
+                        return prev + 2;
+                    });
+                }, 30);
+                
+                return () => clearInterval(timer);
+            }, []);
+            
+            return (
+                <motion.div 
+                    className="completion-overlay"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                >
+                    <div className="completion-content">
+                        <motion.div 
+                            className="trophy-icon"
+                            initial={{ scale: 0, rotate: -180 }}
+                            animate={{ scale: 1, rotate: 0 }}
+                            transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
+                        >
+                            🏆
+                        </motion.div>
+                        
+                        <motion.h1 
+                            className="completion-title"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.4 }}
+                        >
+                            Course Completed!
+                        </motion.h1>
+                        
+                        <motion.p 
+                            className="completion-subtitle"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.6 }}
+                        >
+                            Congratulations, {user?.name}! You've mastered AI Video Creation
+                        </motion.p>
+                        
+                        <motion.div 
+                            className="completion-stats"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.8 }}
+                        >
+                            <div className="completion-stat">
+                                <div className="completion-stat-value">{stats.totalLessons}</div>
+                                <div className="completion-stat-label">Lessons</div>
+                            </div>
+                            <div className="completion-stat">
+                                <div className="completion-stat-value">{stats.totalHours}h</div>
+                                <div className="completion-stat-label">Study Time</div>
+                            </div>
+                            <div className="completion-stat">
+                                <div className="completion-stat-value">{stats.skills}</div>
+                                <div className="completion-stat-label">Skills</div>
+                            </div>
+                        </motion.div>
+                        
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 1 }}
+                            className="mt-8"
+                        >
+                            <div className="w-64 h-2 bg-gray-700 rounded-full mx-auto mb-4 overflow-hidden">
+                                <motion.div 
+                                    className="h-full bg-gradient-to-r from-white to-gray-400"
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${count}%` }}
+                                />
+                            </div>
+                            <p className="text-white text-sm">{count}% Complete</p>
+                        </motion.div>
+                        
+                        <motion.button
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 1.5 }}
+                            onClick={onComplete}
+                            className="btn-animated mt-8 px-8 py-4 bg-gradient-to-r from-gray-800 to-black text-white rounded-full font-bold text-lg shadow-lg"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                        >
+                            Claim Your Certificate →
+                        </motion.button>
+                    </div>
+                </motion.div>
+            );
+        };
+
+        // ======== CERTIFICATE GENERATOR ========
+        const CertificateGenerator = ({ user, onClose }) => {
+            const certificateRef = useRef(null);
+            const [isGenerating, setIsGenerating] = useState(false);
+            const [showSuccess, setShowSuccess] = useState(false);
+            const [certificateId, setCertificateId] = useState('');
+            const [showShimmer, setShowShimmer] = useState(true);
+
+            useEffect(() => {
+                const timestamp = Date.now();
+                const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+                setCertificateId(`AURA-AI-${timestamp}-${random}`);
+                
+                createConfetti();
+                
+                setTimeout(() => setShowShimmer(false), 3000);
+            }, []);
+
+            const createConfetti = () => {
+                const colors = ['#000000', '#333333', '#666666', '#999999', '#cc0000', '#ff0000'];
+                for (let i = 0; i < 80; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'certificate-confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDelay = Math.random() * 3 + 's';
+                    confetti.style.width = Math.random() * 12 + 6 + 'px';
+                    confetti.style.height = Math.random() * 12 + 6 + 'px';
+                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => confetti.remove(), 5000);
+                }
+            };
+
+            const downloadPDF = async () => {
+                setIsGenerating(true);
+                try {
+                    const element = certificateRef.current;
+                    
+                    // Use html2canvas to capture the certificate
+                    const canvas = await html2canvas(element, {
+                        scale: 2,
+                        useCORS: true,
+                        allowTaint: true,
+                        backgroundColor: '#ffffff',
+                        logging: false,
+                        width: 794,  // A4 width in pixels at 96 DPI
+                        height: 1123 // A4 height in pixels at 96 DPI
+                    });
+                    
+                    // Convert to blob for gallery save
+                    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', 1.0));
+                    
+                    // Create download link
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `Aura_AI_Certificate_${user?.name?.replace(/\s+/g, '_') || 'Student'}.png`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    // Try to save to gallery on mobile
+                    if (navigator.share && navigator.canShare) {
+                        const file = new File([blob], `Aura_AI_Certificate_${user?.name?.replace(/\s+/g, '_') || 'Student'}.png`, { type: 'image/png' });
+                        if (navigator.canShare({ files: [file] })) {
+                            await navigator.share({
+                                files: [file],
+                                title: 'Aura AI Certificate',
+                                text: `Certificate for ${user?.name}`
+                            });
+                        }
+                    }
+                    
+                    // Also generate PDF
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const imgData = canvas.toDataURL('image/png', 1.0);
+                    
+                    const pdfWidth = 210; // A4 width in mm
+                    const pdfHeight = 297; // A4 height in mm
+                    
+                    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                    pdf.save(`Aura_AI_Certificate_${user?.name?.replace(/\s+/g, '_') || 'Student'}.pdf`);
+                    
+                    setShowSuccess(true);
+                    showToast('Certificate downloaded successfully!', 'success');
+                    setTimeout(() => setShowSuccess(false), 3000);
+                } catch (error) {
+                    console.error('Error generating certificate:', error);
+                    showToast('Error generating certificate. Please try again.', 'error');
+                } finally {
+                    setIsGenerating(false);
+                }
+            };
+
+            const currentDate = new Date().toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            const stars = Array.from({ length: 30 }, (_, i) => ({
+                id: i,
+                left: Math.random() * 100,
+                top: Math.random() * 100,
+                delay: Math.random() * 3,
+                size: Math.random() * 2 + 1
+            }));
+
+            return (
+                <motion.div 
+                    className="certificate-container"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                >
+                    <button className="certificate-overlay-close" onClick={onClose}>
+                        ✕
+                    </button>
+
+                    {showSuccess && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -50 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed top-20 left-1/2 transform -translate-x-1/2 z-[10002] bg-green-500 text-white px-6 py-3 rounded-full flex items-center gap-2 shadow-lg"
+                        >
+                            <Icon name="check-circle" size={20} />
+                            <span>Certificate downloaded successfully!</span>
+                        </motion.div>
+                    )}
+
+                    <div className="flex flex-col items-center gap-6">
+                        <motion.div
+                            ref={certificateRef}
+                            className="certificate-preview holographic"
+                            initial={{ scale: 0.8, opacity: 0, rotateY: -15 }}
+                            animate={{ scale: 1, opacity: 1, rotateY: 0 }}
+                            transition={{ type: "spring", stiffness: 100, duration: 0.8 }}
+                            style={{ width: '210mm', minHeight: '297mm' }}
+                        >
+                            {showShimmer && <div className="certificate-shimmer"></div>}
+                            
+                            <div className="certificate-inner-border"></div>
+                            <div className="certificate-inner-border-2"></div>
+                            
+                            <div className="certificate-corner tl"></div>
+                            <div className="certificate-corner tr"></div>
+                            <div className="certificate-corner bl"></div>
+                            <div className="certificate-corner br"></div>
+                            
+                            <div className="star-field">
+                                {stars.map(star => (
+                                    <div 
+                                        key={star.id}
+                                        className="star"
+                                        style={{
+                                            left: `${star.left}%`,
+                                            top: `${star.top}%`,
+                                            width: `${star.size}px`,
+                                            height: `${star.size}px`,
+                                            animationDelay: `${star.delay}s`
+                                        }}
+                                    />
+                                ))}
+                            </div>
+                            
+                            <div className="certificate-watermark">AURA AI</div>
+
+                            <div className="certificate-logo-header">
+                                <img src={LOGO_URL} alt="Aura AI Logo" 
+                                    onError={(e) => {
+                                        e.target.style.display = 'none';
+                                        e.target.parentElement.innerHTML = '<div style="font-size:48px;font-weight:bold;color:#000000;">A</div>';
+                                    }}
+                                />
+                                <div className="certificate-org-name">Aura AI Creations</div>
+                            </div>
+
+                            <div className="certificate-title">Certificate of Completion</div>
+                            <div className="certificate-subtitle">Professional AI Video Creation Course</div>
+                            
+                            <div className="certificate-divider"></div>
+
+                            <div className="certificate-presented">This is proudly presented to</div>
+
+                            <div className="certificate-recipient">
+                                {user?.name || 'Student Name'}
+                            </div>
+
+                            <div className="certificate-body">
+                                has successfully completed the comprehensive professional certification program in<br />
+                                <strong>Artificial Intelligence Video Creation</strong><br />
+                                demonstrating mastery in Prompt Engineering, AI Image Generation, Video Production,<br />
+                                Voice Synthesis, Lip Sync Technology, and Professional Post-Production.<br /><br />
+                                This certificate attests to the holder's qualification to create commercial-grade<br />
+                                AI-generated video content for professional applications.
+                            </div>
+
+                            <div className="certificate-badge-container">
+                                <div className="certificate-badge">Professional Certification</div>
+                            </div>
+
+                            <div className="certificate-skills">
+                                <span className="certificate-skill-tag">Prompt Engineering</span>
+                                <span className="certificate-skill-tag">AI Image Gen</span>
+                                <span className="certificate-skill-tag">Video Production</span>
+                                <span className="certificate-skill-tag">Voice AI</span>
+                                <span className="certificate-skill-tag">CapCut Pro</span>
+                                <span className="certificate-skill-tag">Face Referencing</span>
+                            </div>
+
+                            <div className="certificate-footer">
+                                <div className="certificate-date">
+                                    <div className="certificate-signature-line"></div>
+                                    <div className="certificate-label">Date of Issue</div>
+                                    <div className="certificate-value">{currentDate}</div>
+                                </div>
+                                
+                                <div className="certificate-seal-box">
+                                    <div className="certificate-seal">
+                                        <div className="certificate-seal-inner">
+                                            OFFICIAL<br/>SEAL<br/>AURA AI
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="certificate-signature">
+                                    <div className="certificate-signature-line"></div>
+                                    <div className="certificate-label">Authorized by</div>
+                                    <div className="certificate-value">Aura AI Creations</div>
+                                </div>
+                            </div>
+
+                            <div className="certificate-id">
+                                Certificate ID: {certificateId} | Verify at auraaicreations.com/verify
+                            </div>
+                        </motion.div>
+
+                        <div className="download-btn-container">
+                            <motion.button
+                                onClick={downloadPDF}
+                                disabled={isGenerating}
+                                className="btn-animated ripple px-8 py-4 bg-gradient-to-r from-gray-800 to-black text-white rounded-full font-bold text-lg flex items-center gap-3 shadow-2xl"
+                                whileHover={{ scale: 1.05, boxShadow: '0 15px 50px rgba(0, 0, 0, 0.4)' }}
+                                whileTap={{ scale: 0.95 }}
+                            >
+                                {isGenerating ? (
+                                    <>
+                                        <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
+                                            <Icon name="loader" size={20} />
+                                        </motion.span>
+                                        Generating...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Icon name="download" size={20} />
+                                        Download Certificate
+                                    </>
+                                )}
+                            </motion.button>
+                            
+                            <motion.button
+                                onClick={onClose}
+                                className="glass px-6 py-4 text-white rounded-full font-medium flex items-center gap-2 hover:bg-white/10"
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                            >
+                                <Icon name="x" size={18} />
+                                Close
+                            </motion.button>
+                        </div>
+                    </div>
+                </motion.div>
+            );
+        };
         
+        // ======== DASHBOARD ========
         const Dashboard = ({ onLogout }) => {
-            const { user } = useContext(AuthContext);
+            const { user, updateUser } = useContext(AuthContext);
             const [activeModule, setActiveModule] = useState(0);
             const [activeLesson, setActiveLesson] = useState(null);
             const [completedLessons, setCompletedLessons] = useState(() => {
-                // Load completed lessons from localStorage on init
                 const saved = localStorage.getItem('aura_completed_lessons');
                 return saved ? JSON.parse(saved) : [];
             });
             const [showUnlockAnimation, setShowUnlockAnimation] = useState(false);
             const [newlyUnlocked, setNewlyUnlocked] = useState(false);
+            const [showCertificate, setShowCertificate] = useState(false);
+            const [showCelebration, setShowCelebration] = useState(false);
+            const [allCompletedShown, setAllCompletedShown] = useState(() => {
+                return localStorage.getItem('aura_celebration_shown') === 'true';
+            });
+            const [showQuiz, setShowQuiz] = useState(false);
+            const [showForum, setShowForum] = useState(false);
             
-            // Save completed lessons to localStorage whenever they change
             useEffect(() => {
                 localStorage.setItem('aura_completed_lessons', JSON.stringify(completedLessons));
             }, [completedLessons]);
@@ -2788,7 +4753,12 @@
                             duration: '3:14', 
                             videoUrl: 'https://drive.google.com/file/d/1GZ-h7SIAG5bOIavwLng1Sh1N2BdUmIW6/preview',
                             thumbnail: 'https://drive.google.com/thumbnail?id=1GZ-h7SIAG5bOIavwLng1Sh1N2BdUmIW6&sz=w1000',
-                            description: 'AI තාක්ෂණයේ මූලික සංකල්ප, ඉතිහාසය, සහ වර්තමාන භාවිතයන් පිළිබඳ හැඳින්වීමක්. Machine Learning, Deep Learning, Neural Networks පිළිබඳ මූලික අවබෝධය ලබා දීම.'
+                            description: 'AI තාක්ෂණයේ මූලික සංකල්ප, ඉතිහාසය, සහ වර්තමාන භාවිතයන් පිළිබඳ හැඳින්වීමක්. Machine Learning, Deep Learning, Neural Networks පිළිබඳ මූලික අවබෝධය ලබා දීම.',
+                            chapters: [
+                                { title: 'Intro', position: 0 },
+                                { title: 'History', position: 30 },
+                                { title: 'ML Basics', position: 60 }
+                            ]
                         },
                         { 
                             id: 2, 
@@ -2796,7 +4766,12 @@
                             duration: '8:57', 
                             videoUrl: 'https://drive.google.com/file/d/10-4GWQ_FAcUNrdnC3zqtOnGXSmsX2Y2R/preview',
                             thumbnail: 'https://drive.google.com/thumbnail?id=10-4GWQ_FAcUNrdnC3zqtOnGXSmsX2Y2R&sz=w1000',
-                            description: 'ChatGPT, Claude වැනි AI මාදිලි සමඟ කාර්යක්ෂමව සන්නිවේදනය කිරීමට නිවැරදි prompts සාදන ආකාරය. Effective prompting techniques, context setting, සහ output optimization පිළිබඳ ප්‍රායෝගික මගපෙන්වීම.'
+                            description: 'ChatGPT, Claude වැනි AI මාදිලි සමඟ කාර්යක්ෂමව සන්නිවේදනය කිරීමට නිවැරදි prompts සාදන ආකාරය. Effective prompting techniques, context setting, සහ output optimization පිළිබඳ ප්‍රායෝගික මගපෙන්වීම.',
+                            chapters: [
+                                { title: 'What is Prompt', position: 0 },
+                                { title: 'Techniques', position: 40 },
+                                { title: 'Examples', position: 80 }
+                            ]
                         },
                         { 
                             id: 3, 
@@ -2827,7 +4802,7 @@
                             title: 'AI Lip Sync Techniques & Generating Sinhala AI Voices', 
                             duration: '5:50', 
                             videoUrl: 'https://drive.google.com/file/d/1HXyLn9wDiGiLCelEXr0jipPIcQ5EjfMC/preview',
-                                            thumbnail: 'https://drive.google.com/thumbnail?id=1HXyLn9wDiGiLCelEXr0jipPIcQ5EjfMC&sz=w1000',
+                            thumbnail: 'https://drive.google.com/thumbnail?id=1HXyLn9wDiGiLCelEXr0jipPIcQ5EjfMC&sz=w1000',
                             description: 'ElevenLabs, HeyGen භාවිතයෙන් realistic Sinhala AI voices සහ lip-sync videos සාදා ගන්නා ආකාරය. Voice cloning, emotion control, සහ professional audio production.'
                         },
                         { 
@@ -2933,14 +4908,25 @@
                 }
                 
                 setActiveLesson(lesson);
+                setShowQuiz(false);
+                setShowForum(false);
             };
             
             const handleVideoComplete = () => {
                 if (activeLesson && !completedLessons.includes(activeLesson.id)) {
                     const newCompleted = [...completedLessons, activeLesson.id];
                     setCompletedLessons(newCompleted);
-                    // Persist immediately
                     localStorage.setItem('aura_completed_lessons', JSON.stringify(newCompleted));
+                    
+                    // Update user XP
+                    const users = JSON.parse(localStorage.getItem('aura_users') || '[]');
+                    const userIndex = users.findIndex(u => u.email === user.email);
+                    if (userIndex !== -1) {
+                        users[userIndex].xp = (users[userIndex].xp || 0) + 100;
+                        users[userIndex].completedLessons = newCompleted;
+                        localStorage.setItem('aura_users', JSON.stringify(users));
+                        updateUser(users[userIndex]);
+                    }
                     
                     const basicLessons = modules[0].lessons.map(l => l.id);
                     const allBasicCompleted = basicLessons.every(id => newCompleted.includes(id));
@@ -2949,6 +4935,17 @@
                         setTimeout(() => {
                             alert('🎉 Congratulations! You have unlocked the Founder Mastery Course!');
                         }, 500);
+                    }
+                    
+                    const allLessonIds = modules.flatMap(m => m.lessons.map(l => l.id));
+                    const isAllCompleted = allLessonIds.every(id => newCompleted.includes(id));
+                    
+                    if (isAllCompleted && !allCompletedShown) {
+                        setTimeout(() => {
+                            setShowCelebration(true);
+                            localStorage.setItem('aura_celebration_shown', 'true');
+                            setAllCompletedShown(true);
+                        }, 1000);
                     }
                     
                     const currentModule = modules[activeModule];
@@ -2960,8 +4957,14 @@
                             setActiveLesson(nextLesson);
                         }, 1000);
                     }
+                    
+                    showToast('Lesson completed! +100 XP', 'success');
                 }
             };
+
+            const allLessonsCompleted = modules.every(module => 
+                module.lessons.every(lesson => completedLessons.includes(lesson.id))
+            );
             
             const totalLessons = modules.reduce((acc, m) => acc + m.lessons.length, 0);
             const overallProgress = Math.round((completedLessons.length / totalLessons) * 100);
@@ -2994,6 +4997,12 @@
                                         <div className="flex-1">
                                             <h3 className="text-white font-semibold">{user?.name || 'Student'}</h3>
                                             <p className="text-gray-400 text-sm">{user?.email}</p>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className="badge-container text-xs">
+                                                    <Icon name="zap" size={12} />
+                                                    Level {user?.level || 1}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                     
@@ -3005,7 +5014,7 @@
                                             </div>
                                             <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
                                                 <motion.div 
-                                                    className="h-full video-progress rounded-full"
+                                                    className="h-full bg-gradient-to-r from-pink-500 to-purple-500 rounded-full"
                                                     initial={{ width: 0 }}
                                                     animate={{ width: `${overallProgress}%` }}
                                                     transition={{ duration: 1, ease: "easeOut" }}
@@ -3030,6 +5039,39 @@
                                             </motion.div>
                                         </div>
                                         
+                                        {/* XP Bar */}
+                                        <div className="pt-2">
+                                            <div className="flex justify-between text-xs mb-1">
+                                                <span className="text-gray-400">XP Progress</span>
+                                                <span className="text-pink-400">{user?.xp || 0} XP</span>
+                                            </div>
+                                            <div className="xp-bar">
+                                                <div className="xp-fill" style={{ width: `${((user?.xp || 0) % 500) / 5}%` }}></div>
+                                            </div>
+                                        </div>
+
+                                        {/* Certificate Button */}
+                                        {allLessonsCompleted && (
+                                            <motion.div
+                                                initial={{ opacity: 0, scale: 0.9 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                className="mt-4"
+                                            >
+                                                <motion.button
+                                                    onClick={() => setShowCertificate(true)}
+                                                    className="w-full py-3 bg-gradient-to-r from-gray-800 to-black text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg"
+                                                    whileHover={{ scale: 1.05, boxShadow: '0 10px 40px rgba(0, 0, 0, 0.4)' }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                >
+                                                    <Icon name="award" size={20} />
+                                                    Get Your Certificate
+                                                </motion.button>
+                                                <p className="text-center text-white text-xs mt-2">
+                                                    🎉 All lessons completed! Claim your certificate now.
+                                                </p>
+                                            </motion.div>
+                                        )}
+                                        
                                         <motion.button 
                                             onClick={onLogout}
                                             className="btn-animated btn-red w-full py-2 mt-4 text-white rounded-xl text-sm font-medium flex items-center justify-center gap-2"
@@ -3041,6 +5083,9 @@
                                         </motion.button>
                                     </div>
                                 </motion.div>
+                                
+                                {/* Leaderboard */}
+                                <Leaderboard />
                                 
                                 <motion.div 
                                     initial={{ opacity: 0, x: -20 }}
@@ -3175,9 +5220,12 @@
                                             
                                             <div className="p-6">
                                                 <div className="flex items-center gap-3 mb-3">
-                                                    {activeLesson.isQuiz && <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded-lg">Quiz</span>}
-                                                    {activeLesson.isProject && <span className="px-2 py-1 bg-purple-500/20 text-purple-400 text-xs rounded-lg">Project</span>}
-                                                    {activeLesson.isCertification && <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-lg">Certificate</span>}
+                                                    <span className="px-2 py-1 bg-pink-500/20 text-pink-400 text-xs rounded-lg">Video</span>
+                                                    {activeLesson.chapters && (
+                                                        <span className="px-2 py-1 bg-purple-500/20 text-purple-400 text-xs rounded-lg">
+                                                            {activeLesson.chapters.length} Chapters
+                                                        </span>
+                                                    )}
                                                 </div>
                                                 <h2 className="text-xl font-bold text-white mb-2">{activeLesson.title}</h2>
                                                 {activeLesson.description && (
@@ -3193,7 +5241,7 @@
                                                         </p>
                                                     </motion.div>
                                                 )}
-                                                <div className="flex gap-3 mt-4">
+                                                <div className="flex gap-3 mt-4 flex-wrap">
                                                     {!completedLessons.includes(activeLesson.id) ? (
                                                         <motion.button 
                                                             onClick={handleVideoComplete}
@@ -3210,8 +5258,65 @@
                                                             Completed
                                                         </span>
                                                     )}
+                                                    
+                                                    <motion.button
+                                                        onClick={() => setShowQuiz(!showQuiz)}
+                                                        className="glass px-4 py-2 text-white rounded-lg text-sm flex items-center gap-2"
+                                                        whileHover={{ scale: 1.05 }}
+                                                    >
+                                                        <Icon name="help-circle" size={16} />
+                                                        Quiz
+                                                    </motion.button>
+                                                    
+                                                    <motion.button
+                                                        onClick={() => setShowForum(!showForum)}
+                                                        className="glass px-4 py-2 text-white rounded-lg text-sm flex items-center gap-2"
+                                                        whileHover={{ scale: 1.05 }}
+                                                    >
+                                                        <Icon name="message-square" size={16} />
+                                                        Discussion
+                                                    </motion.button>
                                                 </div>
                                             </div>
+                                            
+                                            {/* Quiz Section */}
+                                            <AnimatePresence>
+                                                {showQuiz && (
+                                                    <motion.div
+                                                        initial={{ opacity: 0, height: 0 }}
+                                                        animate={{ opacity: 1, height: 'auto' }}
+                                                        exit={{ opacity: 0, height: 0 }}
+                                                        className="px-6 pb-6"
+                                                    >
+                                                        <QuizSystem 
+                                                            lessonId={activeLesson.id} 
+                                                            onComplete={() => {
+                                                                const users = JSON.parse(localStorage.getItem('aura_users') || '[]');
+                                                                const userIndex = users.findIndex(u => u.email === user.email);
+                                                                if (userIndex !== -1) {
+                                                                    users[userIndex].xp = (users[userIndex].xp || 0) + 50;
+                                                                    localStorage.setItem('aura_users', JSON.stringify(users));
+                                                                    updateUser(users[userIndex]);
+                                                                }
+                                                            }}
+                                                        />
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                            
+                                            {/* Forum Section */}
+                                            <AnimatePresence>
+                                                {showForum && (
+                                                    <motion.div
+                                                        initial={{ opacity: 0, height: 0 }}
+                                                        animate={{ opacity: 1, height: 'auto' }}
+                                                        exit={{ opacity: 0, height: 0 }}
+                                                        className="px-6 pb-6"
+                                                    >
+                                                        <DiscussionForum lessonId={activeLesson.id} />
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
                                         </>
                                     ) : (
                                         <div className="aspect-video flex items-center justify-center">
@@ -3254,18 +5359,48 @@
                                         <div className="space-y-3 text-sm text-gray-400">
                                             <p>• This lesson covers key concepts in {modules[activeModule].title}</p>
                                             <p>• Watch the complete video to unlock the next lesson</p>
-                                            <p>• Download resources for offline reference</p>
-                                            <p>• Complete the quiz after watching (if applicable)</p>
+                                            <p>• Use bookmarks to save important moments</p>
+                                            <p>• Take notes while watching for better retention</p>
+                                            <p>• Complete the quiz after watching</p>
+                                            <p>• Join the discussion forum for questions</p>
                                         </div>
                                     </motion.div>
                                 )}
                             </div>
                         </div>
                     </div>
+
+                    {/* AI Chatbot */}
+                    <AIChatbot />
+
+                    {/* Celebration Modal */}
+                    <AnimatePresence>
+                        {showCelebration && (
+                            <CompletionCelebration 
+                                user={user}
+                                stats={{ totalLessons: 13, totalHours: 2.5, skills: 6 }}
+                                onComplete={() => {
+                                    setShowCelebration(false);
+                                    setShowCertificate(true);
+                                }}
+                            />
+                        )}
+                    </AnimatePresence>
+
+                    {/* Certificate Modal */}
+                    <AnimatePresence>
+                        {showCertificate && (
+                            <CertificateGenerator 
+                                user={user} 
+                                onClose={() => setShowCertificate(false)} 
+                            />
+                        )}
+                    </AnimatePresence>
                 </div>
             );
         };
         
+        // ======== APP ========
         const App = () => {
             const [currentPage, setCurrentPage] = useState('home');
             const [user, setUser] = useState(null);
@@ -3273,10 +5408,13 @@
             const [showIntro, setShowIntro] = useState(true);
             const [introCompleted, setIntroCompleted] = useState(false);
             const [isLoading, setIsLoading] = useState(true);
+            const fireworksRef = useRef(null);
             
             useEffect(() => {
                 initParticles();
                 preventScreenRecording();
+                
+                fireworksRef.current = initFireworks();
                 
                 const introShown = sessionStorage.getItem('aura_intro_shown');
                 if (introShown) {
@@ -3477,7 +5615,7 @@
                                             whileHover={{ scale: 1.05, y: -5 }}
                                         >
                                             <div className="text-3xl font-bold text-white mb-2">24/7</div>
-                                            <div className="text-gray-400">Support</div>
+                                            <div className="text-gray-400">AI Support</div>
                                         </motion.div>
                                     </div>
                                 </div>
